@@ -174,7 +174,8 @@ NOTARY_PROFILE=AwakeNotary ./scripts/release-notarized-dmg.sh
 4. DMG を作成して署名
 5. DMG を公証し、公証チケットを埋め込み、Gatekeeper で検証
 
-出力先は `build/distribution/Awake.dmg` です。以前の DMG は上書きされます。
+出力先は `build/distribution/Awake<バージョン>(<ビルド番号>).dmg`（例: `Awake0.1.0(15).dmg`）です。
+同じコミットから作り直した場合は上書きされます。
 
 - ビルド番号（`CFBundleVersion`）には `main` のコミット数が自動で設定されます。未コミットの変更があるとスクリプトは中断します。
 - バージョン表記（`MARKETING_VERSION`、例: `0.1.0`）は必要に応じて Xcode のプロジェクト設定で変更してください。

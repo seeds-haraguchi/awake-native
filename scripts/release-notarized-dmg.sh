@@ -6,7 +6,6 @@ output_dir="$repo_dir/build/distribution"
 archive_path="$output_dir/Awake.xcarchive"
 app_path="$archive_path/Products/Applications/Awake.app"
 zip_path="$output_dir/Awake.zip"
-dmg_path="$output_dir/Awake.dmg"
 staging_dir="$output_dir/dmg-root"
 identity="${SIGNING_IDENTITY:-Developer ID Application}"
 
@@ -43,6 +42,9 @@ build_number="$(/usr/bin/git -C "$repo_dir" rev-list --count HEAD)"
   ONLY_ACTIVE_ARCH=NO
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$app_path"
+
+marketing_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_path/Contents/Info.plist")"
+dmg_path="$output_dir/Awake$marketing_version($build_number).dmg"
 
 for executable in "$app_path/Contents/MacOS/Awake" "$app_path/Contents/MacOS/AwakeHelper"; do
   archs="$(/usr/bin/lipo -archs "$executable")"
