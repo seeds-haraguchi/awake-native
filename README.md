@@ -165,7 +165,9 @@ the app, creates and signs a DMG, then notarizes, staples, and Gatekeeper-checks
   `pmset disablesleep` setting.
 - `disablesleep` is not described in Apple's public `pmset` man page. Validate every supported macOS/hardware release
   using the manual matrix before shipping.
-- Before deleting the app, turn Awake OFF, confirm `pmset -g` shows `SleepDisabled 0`, and quit Awake.
+- To uninstall, choose **アンインストール…** in the menu footer. It turns Awake OFF, restores the sleep setting,
+  unregisters the helper, clears saved settings, and moves `Awake.app` to the Trash. The empty root-owned
+  `/var/db/jp.co.seeds-std.Awake` directory is left in place.
 
 ## References
 

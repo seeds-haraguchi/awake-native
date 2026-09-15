@@ -7,6 +7,7 @@ enum HelperClientError: LocalizedError {
   case notFound
   case appleSignatureRequired
   case registrationFailed(Error)
+  case unregistrationFailed(Error)
   case connectionFailed(String)
   case operationFailed(String)
 
@@ -22,6 +23,8 @@ enum HelperClientError: LocalizedError {
       "このAwake.appはApple発行の証明書で署名されていないため、特権ヘルパーを登録できません。署名済みのアプリを「アプリケーション」フォルダに配置してください。"
     case .registrationFailed(let error):
       "特権ヘルパーを登録できませんでした。詳細: \(error.localizedDescription)"
+    case .unregistrationFailed(let error):
+      "特権ヘルパーの登録を削除できませんでした。詳細: \(error.localizedDescription)"
     case .connectionFailed(let message):
       "特権ヘルパーと通信できませんでした。詳細: \(message)"
     case .operationFailed(let message):
@@ -66,6 +69,21 @@ final class HelperClient {
       }
     @unknown default:
       throw HelperClientError.notRegistered
+    }
+  }
+
+  func unregister() async throws {
+    invalidate()
+    switch service.status {
+    case .notRegistered, .notFound:
+      return
+    default:
+      break
+    }
+    do {
+      try await service.unregister()
+    } catch {
+      throw HelperClientError.unregistrationFailed(error)
     }
   }
 

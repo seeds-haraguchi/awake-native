@@ -86,7 +86,7 @@ final class AwakeSafetyEvaluatorTests: XCTestCase {
     let suiteName = "AwakeTests.\(UUID().uuidString)"
     let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
     defer { defaults.removePersistentDomain(forName: suiteName) }
-    let controller = AwakeController(defaults: defaults)
+    let controller = AwakeController(defaults: defaults, startsServices: false)
 
     controller.customTimerMinutes = 91
     XCTAssertEqual(controller.customTimerMinutes, 91)

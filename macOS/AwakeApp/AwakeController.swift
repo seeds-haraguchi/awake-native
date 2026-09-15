@@ -78,7 +78,11 @@ final class AwakeController: ObservableObject {
   private var lastPowerRefreshUptime: TimeInterval = 0
   private var lastHeartbeatUptime: TimeInterval = 0
 
-  init(defaults: UserDefaults = .standard, helperClient: HelperClient = HelperClient()) {
+  init(
+    defaults: UserDefaults = .standard,
+    helperClient: HelperClient = HelperClient(),
+    startsServices: Bool = true
+  ) {
     self.defaults = defaults
     self.helperClient = helperClient
 
@@ -106,6 +110,8 @@ final class AwakeController: ObservableObject {
     helperClient.onConnectionLost = { [weak self] in
       self?.handleConnectionLoss()
     }
+    // Tests disable this so they never touch the privileged helper installed on the host.
+    guard startsServices else { return }
     startMonitoring()
     Task { await recoverAtLaunch() }
   }
@@ -137,6 +143,56 @@ final class AwakeController: ObservableObject {
       helperClient.invalidate()
       completion()
     }
+  }
+
+  /// Restores the sleep setting, removes the helper registration, and clears saved settings.
+  /// Returns `true` when `SleepDisabled` still reads 1 afterwards.
+  func uninstall() async throws -> Bool {
+    guard !isTransitioning else {
+      throw HelperClientError.operationFailed("処理中です。完了してからもう一度お試しください。")
+    }
+    if isAwake {
+      await stopAwake(reason: .user)
+      guard !isAwake else {
+        throw HelperClientError.operationFailed(
+          errorMessage ?? "スリープ設定を復旧できなかったため、アンインストールを中止しました。")
+      }
+    }
+
+    isTransitioning = true
+    errorMessage = nil
+    defer { isTransitioning = false }
+
+    if helperClient.serviceStatus == .enabled {
+      // Clear any durable recovery marker while the daemon can still act on it.
+      try await helperClient.restoreOrphanedState()
+    }
+    try await helperClient.unregister()
+
+    for key in [
+      Keys.timerPreset, Keys.customTimerMinutes, Keys.batteryThreshold, Keys.thermalSafety,
+    ] {
+      defaults.removeObject(forKey: key)
+    }
+    return Self.readSleepDisabled() == true
+  }
+
+  private static func readSleepDisabled() -> Bool? {
+    let process = Process()
+    let outputPipe = Pipe()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/pmset")
+    process.arguments = ["-g"]
+    process.standardInput = FileHandle.nullDevice
+    process.standardOutput = outputPipe
+    process.standardError = FileHandle.nullDevice
+    do {
+      try process.run()
+    } catch {
+      return nil
+    }
+    let data = outputPipe.fileHandleForReading.readDataToEndOfFile()
+    process.waitUntilExit()
+    return PMSetStateParser.parseSleepDisabled(from: String(decoding: data, as: UTF8.self))
   }
 
   private func startAwake() async {

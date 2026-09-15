@@ -88,8 +88,15 @@ struct MenuBarContentView: View {
       HStack {
         VStack(alignment: .leading, spacing: 2) {
           Text("AC電源接続中はバッテリー保護を適用しません。")
-          Text(appVersion)
-            .textSelection(.enabled)
+          HStack(spacing: 8) {
+            Text(appVersion)
+              .textSelection(.enabled)
+            Button("アンインストール…") {
+              confirmAndUninstall()
+            }
+            .buttonStyle(.link)
+            .disabled(controller.isTransitioning)
+          }
         }
         .font(.caption2)
         .foregroundStyle(.secondary)
@@ -121,6 +128,55 @@ struct MenuBarContentView: View {
     }
     .padding(12)
     .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+  }
+
+  private func confirmAndUninstall() {
+    NSApp.activate(ignoringOtherApps: true)
+    let confirmation = NSAlert()
+    confirmation.alertStyle = .warning
+    confirmation.messageText = "Awakeをアンインストールしますか？"
+    confirmation.informativeText =
+      "Awakeをオフにしてスリープ設定を元に戻し、特権ヘルパーの登録と保存した設定を削除します。最後にAwake.appをゴミ箱に移動して終了します。"
+    confirmation.addButton(withTitle: "アンインストール").hasDestructiveAction = true
+    confirmation.addButton(withTitle: "キャンセル")
+    guard confirmation.runModal() == .alertFirstButtonReturn else { return }
+
+    Task {
+      do {
+        let sleepStillDisabled = try await controller.uninstall()
+        await finishUninstall(sleepStillDisabled: sleepStillDisabled)
+      } catch {
+        let failure = NSAlert()
+        failure.alertStyle = .critical
+        failure.messageText = "アンインストールできませんでした"
+        failure.informativeText = error.localizedDescription
+        NSApp.activate(ignoringOtherApps: true)
+        failure.runModal()
+      }
+    }
+  }
+
+  private func finishUninstall(sleepStillDisabled: Bool) async {
+    var lines = ["特権ヘルパーの登録と保存した設定を削除しました。"]
+    do {
+      _ = try await NSWorkspace.shared.recycle([Bundle.main.bundleURL])
+      lines.append("Awake.appをゴミ箱に移動しました。")
+    } catch {
+      lines.append("Awake.appをゴミ箱に移動できませんでした。Finderで「アプリケーション」フォルダから削除してください。")
+    }
+    if sleepStillDisabled {
+      lines.append(
+        "システムのスリープ無効設定（SleepDisabled）が1のままです。Awake以外のツールで設定していなければ、ターミナルで次のコマンドを実行してください。\nsudo pmset -a disablesleep 0"
+      )
+    }
+
+    let completion = NSAlert()
+    completion.messageText = "アンインストールが完了しました"
+    completion.informativeText = lines.joined(separator: "\n\n")
+    completion.addButton(withTitle: "終了")
+    NSApp.activate(ignoringOtherApps: true)
+    completion.runModal()
+    NSApp.terminate(nil)
   }
 
   private var appVersion: String {
