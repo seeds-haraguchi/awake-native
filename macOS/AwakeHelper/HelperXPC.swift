@@ -1,4 +1,20 @@
 import Foundation
+import MachO
+
+enum HelperBuild {
+  /// Read from the Info.plist linked into this executable. Reading Awake.app/Contents/Info.plist instead would
+  /// report the replacement app's build after an update, while this process still runs the old code.
+  static let version: String = {
+    var size: UInt = 0
+    let header = #dsohandle.assumingMemoryBound(to: mach_header_64.self)
+    guard let bytes = getsectiondata(header, "__TEXT", "__info_plist", &size),
+      let info = try? PropertyListSerialization.propertyList(
+        from: Data(bytes: bytes, count: Int(size)), format: nil) as? [String: Any],
+      let version = AwakeConstants.buildVersion(from: info)
+    else { return "unknown" }
+    return version
+  }()
+}
 
 final class HelperClientEndpoint: NSObject, AwakeHelperProtocol {
   private let connectionIdentifier: UUID
@@ -39,6 +55,10 @@ final class HelperClientEndpoint: NSObject, AwakeHelperProtocol {
 
   func restoreOrphanedState(reply: @escaping (Bool, String?) -> Void) {
     service.restoreOrphanedState(reply: reply)
+  }
+
+  func version(reply: @escaping (String) -> Void) {
+    reply(HelperBuild.version)
   }
 }
 

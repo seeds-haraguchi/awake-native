@@ -176,6 +176,11 @@ NOTARY_PROFILE=AwakeNotary ./scripts/release-notarized-dmg.sh
 
 出力先は `build/distribution/Awake.dmg` です。以前の DMG は上書きされます。
 
+- ビルド番号（`CFBundleVersion`）には `main` のコミット数が自動で設定されます。未コミットの変更があるとスクリプトは中断します。
+- バージョン表記（`MARKETING_VERSION`、例: `0.1.0`）は必要に応じて Xcode のプロジェクト設定で変更してください。
+- アプリは起動時に、動作中の補助プログラムのバージョンが自分と異なれば登録し直して入れ替えます。
+  そのため配布先は DMG から上書きインストールするだけで更新できます。
+
 ## 開発用ビルド
 
 `Awake.xcodeproj` を開いてビルドします。`Awake` と `AwakeHelper` の両ターゲットで Team `VKKULG2DQ5` を使います。

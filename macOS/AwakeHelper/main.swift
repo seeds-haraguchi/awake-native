@@ -15,6 +15,6 @@ listener.setConnectionCodeSigningRequirement(
   CodeSigningRequirement.forPeer(bundleIdentifier: AwakeConstants.appBundleIdentifier)
 )
 listener.delegate = delegate
-logger.notice("Awake privileged helper started")
+logger.notice("Awake privileged helper \(HelperBuild.version, privacy: .public) started")
 listener.activate()
 dispatchMain()

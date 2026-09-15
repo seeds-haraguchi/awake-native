@@ -17,6 +17,15 @@ if [[ -z "${NOTARY_PROFILE:-}" ]]; then
   exit 1
 fi
 
+if [[ -n "$(/usr/bin/git -C "$repo_dir" status --porcelain)" ]]; then
+  print -u2 "Commit or stash local changes first; the build number identifies the released commit."
+  exit 1
+fi
+
+# The app replaces an installed helper whose build differs, so every release needs a new build number.
+# The commit count only grows on main, so it is unique per released commit.
+build_number="$(/usr/bin/git -C "$repo_dir" rev-list --count HEAD)"
+
 /bin/mkdir -p "$output_dir"
 
 /usr/bin/xcodebuild archive \
@@ -26,6 +35,7 @@ fi
   -destination 'generic/platform=macOS' \
   -archivePath "$archive_path" \
   DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+  CURRENT_PROJECT_VERSION="$build_number" \
   CODE_SIGN_STYLE=Manual \
   CODE_SIGN_IDENTITY="$identity" \
   OTHER_CODE_SIGN_FLAGS='--timestamp' \
@@ -63,4 +73,4 @@ done
 /usr/bin/xcrun stapler staple "$dmg_path"
 /usr/sbin/spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg_path"
 
-print "Created notarized and stapled DMG: $dmg_path"
+print "Created notarized and stapled DMG (build $build_number): $dmg_path"

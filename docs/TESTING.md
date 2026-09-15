@@ -76,3 +76,14 @@ thermal observations; do not deliberately overheat hardware.
 
 This is a destructive test for active work. Turn Awake ON, force-restart the test Mac, and confirm after boot that
 the helper's `RunAtLoad` recovery cleared the durable marker and `pmset -g` reports `SleepDisabled 0`.
+
+## Helper replacement on update
+
+1. Install a released DMG, turn Awake ON once so the helper is registered, then turn it OFF and quit.
+2. Install a DMG with a different build number over it without rebooting.
+3. Launch Awake. The switch is disabled for up to about 20 seconds when the previous helper predates the version
+   request, because that helper never replies.
+4. Confirm with `log show --last 5m --predicate 'subsystem == "jp.co.seeds-std.Awake.Helper"'` that a helper
+   reporting the new build started, then turn Awake ON and OFF and confirm `SleepDisabled` follows.
+5. Repeat step 2 while the previous app left a durable marker (force quit the app while ON), and confirm launch
+   recovery reports `SleepDisabled 0` before the helper is replaced and Awake can be turned ON.

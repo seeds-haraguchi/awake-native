@@ -141,6 +141,12 @@ final class HelperClient {
     }
   }
 
+  func version() async throws -> String {
+    try await call { proxy, gate in
+      proxy.version(reply: Self.versionReply(gate))
+    }
+  }
+
   func invalidate() {
     connection?.invalidationHandler = nil
     connection?.invalidate()
@@ -222,6 +228,12 @@ final class HelperClient {
       } else {
         gate.resume(with: .success((enabled, ownedByAwake, sessionIdentifier)))
       }
+    }
+  }
+
+  private nonisolated static func versionReply(_ gate: ReplyGate<String>) -> @Sendable (String) -> Void {
+    { version in
+      gate.resume(with: .success(version))
     }
   }
 

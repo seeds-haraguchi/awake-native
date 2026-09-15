@@ -10,6 +10,14 @@ enum AwakeConstants {
 
   static let heartbeatInterval: TimeInterval = 10
   static let heartbeatTimeout: TimeInterval = 45
+
+  /// Formats a build as "0.1.0 (1)"; the app and the helper share both version build settings.
+  static func buildVersion(from info: [String: Any]?) -> String? {
+    guard let version = info?["CFBundleShortVersionString"] as? String,
+      let build = info?["CFBundleVersion"] as? String
+    else { return nil }
+    return "\(version) (\(build))"
+  }
 }
 
 enum CodeSigningRequirement {

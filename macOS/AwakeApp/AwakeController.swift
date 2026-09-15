@@ -340,6 +340,42 @@ final class AwakeController: ObservableObject {
       isAwake = true
       isTransitioning = false
       errorMessage = "起動時のスリープ設定復旧を確認できませんでした。詳細: \(error.localizedDescription)"
+      return
+    }
+    await replaceOutdatedHelper()
+  }
+
+  /// launchd keeps the helper from the previous Awake.app running after the app is replaced, so an update
+  /// only reaches the helper once it is registered again. Runs after launch recovery, when no Awake session
+  /// holds SleepDisabled; a marker left by an interrupted session is still recovered by the new helper.
+  private func replaceOutdatedHelper() async {
+    guard !isAwake, let appVersion = AwakeConstants.buildVersion(from: Bundle.main.infoDictionary)
+    else { return }
+
+    // Blocks the switch so that no session starts on the helper that is about to be stopped.
+    isTransitioning = true
+    defer { isTransitioning = false }
+
+    // A helper older than the version request never replies, so any failure means it must be replaced.
+    if let helperVersion = try? await helperClient.version(), helperVersion == appVersion {
+      return
+    }
+    do {
+      try await helperClient.reregister()
+      let helperVersion = try await helperClient.version()
+      guard helperVersion == appVersion else {
+        errorMessage =
+          "補助プログラム（\(helperVersion)）をAwake \(appVersion)に更新できませんでした。Macを再起動してください。"
+        return
+      }
+    } catch let error as HelperClientError {
+      if case .requiresApproval = error {
+        errorMessage = error.localizedDescription
+      } else {
+        errorMessage = "補助プログラムを更新できませんでした。Macを再起動してください。詳細: \(error.localizedDescription)"
+      }
+    } catch {
+      errorMessage = "補助プログラムを更新できませんでした。Macを再起動してください。詳細: \(error.localizedDescription)"
     }
   }
 

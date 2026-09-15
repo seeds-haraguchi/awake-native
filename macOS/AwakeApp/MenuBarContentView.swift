@@ -197,10 +197,7 @@ struct MenuBarContentView: View {
   }
 
   private var appVersion: String {
-    let info = Bundle.main.infoDictionary
-    let version = info?["CFBundleShortVersionString"] as? String ?? "不明"
-    let build = info?["CFBundleVersion"] as? String ?? "不明"
-    return "バージョン \(version) (\(build))"
+    "バージョン \(AwakeConstants.buildVersion(from: Bundle.main.infoDictionary) ?? "不明")"
   }
 
   private var awakeStatus: String {
