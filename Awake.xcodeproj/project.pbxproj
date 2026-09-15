@@ -1,0 +1,231 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA0000010000000000000001 /* AwakeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000010000000000000001 /* AwakeApp.swift */; };
+		AA0000020000000000000001 /* AppLifecycleDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000020000000000000001 /* AppLifecycleDelegate.swift */; };
+		AA0000030000000000000001 /* AwakeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000030000000000000001 /* AwakeController.swift */; };
+		AA0000040000000000000001 /* HelperClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000040000000000000001 /* HelperClient.swift */; };
+		AA0000050000000000000001 /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000050000000000000001 /* MenuBarContentView.swift */; };
+		AA0000060000000000000001 /* AwakeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000060000000000000001 /* AwakeModels.swift */; };
+		AA0000070000000000000001 /* AwakeSafetyEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000070000000000000001 /* AwakeSafetyEvaluator.swift */; };
+		AA0000080000000000000001 /* PowerAssertionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000080000000000000001 /* PowerAssertionController.swift */; };
+		AA0000090000000000000001 /* SystemPowerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000090000000000000001 /* SystemPowerMonitor.swift */; };
+		AA00000A0000000000000001 /* AwakeConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000A0000000000000001 /* AwakeConstants.swift */; };
+		AA00000B0000000000000001 /* AwakeHelperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000B0000000000000001 /* AwakeHelperProtocol.swift */; };
+		AA00000C0000000000000001 /* LeaseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000C0000000000000001 /* LeaseStore.swift */; };
+		AA00000D0000000000000001 /* PMSetController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000D0000000000000001 /* PMSetController.swift */; };
+		AA00000E0000000000000001 /* HelperService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000E0000000000000001 /* HelperService.swift */; };
+		AA00000F0000000000000001 /* HelperXPC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000F0000000000000001 /* HelperXPC.swift */; };
+		AA0000100000000000000001 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000100000000000000001 /* main.swift */; };
+		AA0000110000000000000001 /* AwakeConstants.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = AA10000A0000000000000001 /* AwakeConstants.swift */; };
+		AA0000120000000000000001 /* AwakeHelperProtocol.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = AA10000B0000000000000001 /* AwakeHelperProtocol.swift */; };
+		AA0000130000000000000001 /* AwakeSafetyEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000130000000000000001 /* AwakeSafetyEvaluatorTests.swift */; };
+		AA0000140000000000000001 /* AwakeHelper in Copy Helper */ = {isa = PBXBuildFile; fileRef = AA2000020000000000000001 /* AwakeHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		AA0000150000000000000001 /* com.example.Awake.Helper.plist in Copy Daemon Plist */ = {isa = PBXBuildFile; fileRef = AA1000110000000000000001 /* com.example.Awake.Helper.plist */; };
+		AA0000160000000000000001 /* PMSetStateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000160000000000000001 /* PMSetStateParser.swift */; };
+		AA0000170000000000000001 /* PMSetStateParser.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = AA1000160000000000000001 /* PMSetStateParser.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA3000010000000000000001 = {isa = PBXContainerItemProxy; containerPortal = AA5000010000000000000001 /* Project object */; proxyType = 1; remoteGlobalIDString = AA4000020000000000000001; remoteInfo = AwakeHelper; };
+		AA3000020000000000000001 = {isa = PBXContainerItemProxy; containerPortal = AA5000010000000000000001 /* Project object */; proxyType = 1; remoteGlobalIDString = AA4000010000000000000001; remoteInfo = Awake; };
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA6000040000000000000001 /* Copy Helper */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/MacOS;
+			dstSubfolderSpec = 1;
+			files = (AA0000140000000000000001 /* AwakeHelper in Copy Helper */, );
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA6000050000000000000001 /* Copy Daemon Plist */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolderSpec = 1;
+			files = (AA0000150000000000000001 /* com.example.Awake.Helper.plist in Copy Daemon Plist */, );
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		AA1000010000000000000001 /* AwakeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeApp.swift; sourceTree = "<group>"; };
+		AA1000020000000000000001 /* AppLifecycleDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLifecycleDelegate.swift; sourceTree = "<group>"; };
+		AA1000030000000000000001 /* AwakeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeController.swift; sourceTree = "<group>"; };
+		AA1000040000000000000001 /* HelperClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperClient.swift; sourceTree = "<group>"; };
+		AA1000050000000000000001 /* MenuBarContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContentView.swift; sourceTree = "<group>"; };
+		AA1000060000000000000001 /* AwakeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeModels.swift; sourceTree = "<group>"; };
+		AA1000070000000000000001 /* AwakeSafetyEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeSafetyEvaluator.swift; sourceTree = "<group>"; };
+		AA1000080000000000000001 /* PowerAssertionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerAssertionController.swift; sourceTree = "<group>"; };
+		AA1000090000000000000001 /* SystemPowerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPowerMonitor.swift; sourceTree = "<group>"; };
+		AA10000A0000000000000001 /* AwakeConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeConstants.swift; sourceTree = "<group>"; };
+		AA10000B0000000000000001 /* AwakeHelperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeHelperProtocol.swift; sourceTree = "<group>"; };
+		AA10000C0000000000000001 /* LeaseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaseStore.swift; sourceTree = "<group>"; };
+		AA10000D0000000000000001 /* PMSetController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMSetController.swift; sourceTree = "<group>"; };
+		AA10000E0000000000000001 /* HelperService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperService.swift; sourceTree = "<group>"; };
+		AA10000F0000000000000001 /* HelperXPC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperXPC.swift; sourceTree = "<group>"; };
+		AA1000100000000000000001 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		AA1000110000000000000001 /* com.example.Awake.Helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.example.Awake.Helper.plist; sourceTree = "<group>"; };
+		AA1000120000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA1000130000000000000001 /* AwakeSafetyEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeSafetyEvaluatorTests.swift; sourceTree = "<group>"; };
+		AA1000140000000000000001 /* App Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "App Info.plist"; path = Info.plist; sourceTree = "<group>"; };
+		AA1000150000000000000001 /* Awake.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Awake.entitlements; sourceTree = "<group>"; };
+		AA1000160000000000000001 /* PMSetStateParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMSetStateParser.swift; sourceTree = "<group>"; };
+		AA2000010000000000000001 /* Awake.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Awake.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA2000020000000000000001 /* AwakeHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AwakeHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA2000030000000000000001 /* AwakeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AwakeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA6000020000000000000001 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		AA6000070000000000000001 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		AA60000A0000000000000001 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA7000010000000000000001 = {
+			isa = PBXGroup;
+			children = (AA7000020000000000000001 /* macOS */, AA7000070000000000000001 /* Products */);
+			sourceTree = "<group>";
+		};
+		AA7000020000000000000001 /* macOS */ = {
+			isa = PBXGroup;
+			children = (AA7000030000000000000001 /* AwakeApp */, AA7000040000000000000001 /* AwakeCore */, AA7000050000000000000001 /* AwakeShared */, AA7000060000000000000001 /* AwakeHelper */, AA7000080000000000000001 /* AwakeTests */);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+		AA7000030000000000000001 /* AwakeApp */ = {
+			isa = PBXGroup;
+			children = (AA1000010000000000000001, AA1000020000000000000001, AA1000030000000000000001, AA1000040000000000000001, AA1000050000000000000001, AA1000140000000000000001, AA1000150000000000000001);
+			path = AwakeApp;
+			sourceTree = "<group>";
+		};
+		AA7000040000000000000001 /* AwakeCore */ = {
+			isa = PBXGroup;
+			children = (AA1000060000000000000001, AA1000070000000000000001, AA1000080000000000000001, AA1000090000000000000001);
+			path = AwakeCore;
+			sourceTree = "<group>";
+		};
+		AA7000050000000000000001 /* AwakeShared */ = {
+			isa = PBXGroup;
+			children = (AA10000A0000000000000001, AA10000B0000000000000001, AA1000160000000000000001);
+			path = AwakeShared;
+			sourceTree = "<group>";
+		};
+		AA7000060000000000000001 /* AwakeHelper */ = {
+			isa = PBXGroup;
+			children = (AA10000C0000000000000001, AA10000D0000000000000001, AA10000E0000000000000001, AA10000F0000000000000001, AA1000100000000000000001, AA1000110000000000000001, AA1000120000000000000001);
+			path = AwakeHelper;
+			sourceTree = "<group>";
+		};
+		AA7000070000000000000001 /* Products */ = {
+			isa = PBXGroup;
+			children = (AA2000010000000000000001, AA2000020000000000000001, AA2000030000000000000001);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AA7000080000000000000001 /* AwakeTests */ = {
+			isa = PBXGroup;
+			children = (AA1000130000000000000001);
+			path = AwakeTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA4000010000000000000001 /* Awake */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA8000020000000000000001;
+			buildPhases = (AA6000010000000000000001, AA6000020000000000000001, AA6000040000000000000001, AA6000050000000000000001, AA6000030000000000000001);
+			buildRules = ();
+			dependencies = (AA9000010000000000000001, );
+			name = Awake;
+			productName = Awake;
+			productReference = AA2000010000000000000001;
+			productType = "com.apple.product-type.application";
+		};
+		AA4000020000000000000001 /* AwakeHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA8000030000000000000001;
+			buildPhases = (AA6000060000000000000001, AA6000070000000000000001, AA6000080000000000000001);
+			buildRules = ();
+			dependencies = ();
+			name = AwakeHelper;
+			productName = AwakeHelper;
+			productReference = AA2000020000000000000001;
+			productType = "com.apple.product-type.tool";
+		};
+		AA4000030000000000000001 /* AwakeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA8000040000000000000001;
+			buildPhases = (AA6000090000000000000001, AA60000A0000000000000001, AA60000B0000000000000001);
+			buildRules = ();
+			dependencies = (AA9000020000000000000001, );
+			name = AwakeTests;
+			productName = AwakeTests;
+			productReference = AA2000030000000000000001;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA5000010000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 2660; LastUpgradeCheck = 2660; TargetAttributes = {AA4000010000000000000001 = {CreatedOnToolsVersion = 26.6; }; AA4000020000000000000001 = {CreatedOnToolsVersion = 26.6; }; AA4000030000000000000001 = {CreatedOnToolsVersion = 26.6; TestTargetID = AA4000010000000000000001; }; }; };
+			buildConfigurationList = AA8000010000000000000001;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = AA7000010000000000000001;
+			productRefGroup = AA7000070000000000000001;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (AA4000010000000000000001, AA4000020000000000000001, AA4000030000000000000001);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA6000030000000000000001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		AA6000080000000000000001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		AA60000B0000000000000001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA6000010000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000010000000000000001, AA0000020000000000000001, AA0000030000000000000001, AA0000040000000000000001, AA0000050000000000000001, AA0000060000000000000001, AA0000070000000000000001, AA0000080000000000000001, AA0000090000000000000001, AA00000A0000000000000001, AA00000B0000000000000001, AA0000160000000000000001); runOnlyForDeploymentPostprocessing = 0; };
+		AA6000060000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA00000C0000000000000001, AA00000D0000000000000001, AA00000E0000000000000001, AA00000F0000000000000001, AA0000100000000000000001, AA0000110000000000000001, AA0000120000000000000001, AA0000170000000000000001); runOnlyForDeploymentPostprocessing = 0; };
+		AA6000090000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000130000000000000001); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA9000010000000000000001 = {isa = PBXTargetDependency; target = AA4000020000000000000001 /* AwakeHelper */; targetProxy = AA3000010000000000000001; };
+		AA9000020000000000000001 = {isa = PBXTargetDependency; target = AA4000010000000000000001 /* Awake */; targetProxy = AA3000020000000000000001; };
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AB0000010000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; MACOSX_DEPLOYMENT_TARGET = 13.0; SDKROOT = macosx; SWIFT_VERSION = 6.0; }; name = Debug; };
+		AB0000020000000000000001 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; MACOSX_DEPLOYMENT_TARGET = 13.0; SDKROOT = macosx; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_VERSION = 6.0; }; name = Release; };
+		AB0000030000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_ENTITLEMENTS = macOS/AwakeApp/Awake.entitlements; CODE_SIGN_STYLE = Automatic; COMBINE_HIDPI_IMAGES = YES; CURRENT_PROJECT_VERSION = 1; ENABLE_HARDENED_RUNTIME = YES; ENABLE_TESTABILITY = YES; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = macOS/AwakeApp/Info.plist; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks"; MARKETING_VERSION = 0.1.0; ONLY_ACTIVE_ARCH = YES; PRODUCT_BUNDLE_IDENTIFIER = com.example.Awake; PRODUCT_MODULE_NAME = Awake; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Debug; };
+		AB0000040000000000000001 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {ARCHS = "$(ARCHS_STANDARD)"; CODE_SIGN_ENTITLEMENTS = macOS/AwakeApp/Awake.entitlements; CODE_SIGN_STYLE = Manual; COMBINE_HIDPI_IMAGES = YES; CURRENT_PROJECT_VERSION = 1; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = macOS/AwakeApp/Info.plist; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks"; MARKETING_VERSION = 0.1.0; ONLY_ACTIVE_ARCH = NO; PRODUCT_BUNDLE_IDENTIFIER = com.example.Awake; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Release; };
+		AB0000050000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CREATE_INFOPLIST_SECTION_IN_BINARY = YES; CURRENT_PROJECT_VERSION = 1; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = macOS/AwakeHelper/Info.plist; MARKETING_VERSION = 0.1.0; ONLY_ACTIVE_ARCH = YES; PRODUCT_BUNDLE_IDENTIFIER = com.example.Awake.Helper; PRODUCT_NAME = "$(TARGET_NAME)"; SKIP_INSTALL = YES; }; name = Debug; };
+		AB0000060000000000000001 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {ARCHS = "$(ARCHS_STANDARD)"; CODE_SIGN_STYLE = Manual; CREATE_INFOPLIST_SECTION_IN_BINARY = YES; CURRENT_PROJECT_VERSION = 1; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = macOS/AwakeHelper/Info.plist; MARKETING_VERSION = 0.1.0; ONLY_ACTIVE_ARCH = NO; PRODUCT_BUNDLE_IDENTIFIER = com.example.Awake.Helper; PRODUCT_NAME = "$(TARGET_NAME)"; SKIP_INSTALL = YES; }; name = Release; };
+		AB0000070000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 13.0; ONLY_ACTIVE_ARCH = YES; PRODUCT_BUNDLE_IDENTIFIER = com.example.AwakeTests; PRODUCT_MODULE_NAME = AwakeTests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 6.0; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Awake.app/Contents/MacOS/Awake"; }; name = Debug; };
+		AB0000080000000000000001 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Manual; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 13.0; PRODUCT_BUNDLE_IDENTIFIER = com.example.AwakeTests; PRODUCT_MODULE_NAME = AwakeTests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 6.0; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Awake.app/Contents/MacOS/Awake"; }; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA8000010000000000000001 = {isa = XCConfigurationList; buildConfigurations = (AB0000010000000000000001, AB0000020000000000000001); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		AA8000020000000000000001 = {isa = XCConfigurationList; buildConfigurations = (AB0000030000000000000001, AB0000040000000000000001); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		AA8000030000000000000001 = {isa = XCConfigurationList; buildConfigurations = (AB0000050000000000000001, AB0000060000000000000001); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		AA8000040000000000000001 = {isa = XCConfigurationList; buildConfigurations = (AB0000070000000000000001, AB0000080000000000000001); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = AA5000010000000000000001 /* Project object */;
+}

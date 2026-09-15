@@ -1,0 +1,90 @@
+import XCTest
+
+@testable import Awake
+
+final class AwakeSafetyEvaluatorTests: XCTestCase {
+  private let startUptime: TimeInterval = 10_000
+
+  func testTimerStopsAtDeadline() {
+    var evaluator = AwakeSafetyEvaluator()
+    let reason = evaluator.evaluate(
+      nowUptime: startUptime,
+      timerDeadlineUptime: startUptime,
+      batteryThreshold: .off,
+      power: PowerSnapshot(batteryPercentage: 100, isOnACPower: true),
+      thermalSafetyEnabled: false,
+      thermalState: .nominal
+    )
+    XCTAssertEqual(reason, .timer)
+  }
+
+  func testBatteryStopsAtThresholdOnlyOnBatteryPower() {
+    var evaluator = AwakeSafetyEvaluator()
+    let onBattery = evaluator.evaluate(
+      nowUptime: startUptime,
+      timerDeadlineUptime: nil,
+      batteryThreshold: .twenty,
+      power: PowerSnapshot(batteryPercentage: 20, isOnACPower: false),
+      thermalSafetyEnabled: false,
+      thermalState: .nominal
+    )
+    XCTAssertEqual(onBattery, .battery(percent: 20, threshold: 20))
+
+    let onAC = evaluator.evaluate(
+      nowUptime: startUptime,
+      timerDeadlineUptime: nil,
+      batteryThreshold: .twenty,
+      power: PowerSnapshot(batteryPercentage: 10, isOnACPower: true),
+      thermalSafetyEnabled: false,
+      thermalState: .nominal
+    )
+    XCTAssertNil(onAC)
+  }
+
+  func testShortThermalPressureDoesNotStopAwake() {
+    var evaluator = AwakeSafetyEvaluator()
+    XCTAssertNil(evaluateThermal(&evaluator, state: .serious, after: 0))
+    XCTAssertNil(evaluateThermal(&evaluator, state: .serious, after: 179))
+  }
+
+  func testSustainedThermalPressureStopsAfterThreeMinutes() {
+    var evaluator = AwakeSafetyEvaluator()
+    XCTAssertNil(evaluateThermal(&evaluator, state: .serious, after: 0))
+    XCTAssertEqual(evaluateThermal(&evaluator, state: .critical, after: 180), .thermal)
+  }
+
+  func testThermalRecoveryResetsSustainWindow() {
+    var evaluator = AwakeSafetyEvaluator()
+    XCTAssertNil(evaluateThermal(&evaluator, state: .serious, after: 0))
+    XCTAssertNil(evaluateThermal(&evaluator, state: .nominal, after: 120))
+    XCTAssertNil(evaluateThermal(&evaluator, state: .serious, after: 200))
+    XCTAssertNil(evaluateThermal(&evaluator, state: .serious, after: 379))
+    XCTAssertEqual(evaluateThermal(&evaluator, state: .serious, after: 380), .thermal)
+  }
+
+  func testParsesPMSetSleepDisabledState() {
+    XCTAssertEqual(
+      PMSetStateParser.parseSleepDisabled(
+        from: "System-wide power settings:\n SleepDisabled\t\t1\n"
+      ),
+      true
+    )
+    XCTAssertEqual(PMSetStateParser.parseSleepDisabled(from: " SleepDisabled 0\n"), false)
+    XCTAssertNil(PMSetStateParser.parseSleepDisabled(from: " sleep 1\n"))
+  }
+
+  private func evaluateThermal(
+    _ evaluator: inout AwakeSafetyEvaluator,
+    state: ProcessInfo.ThermalState,
+    after seconds: TimeInterval
+  ) -> AwakeStopReason? {
+    evaluator.evaluate(
+      nowUptime: startUptime + seconds,
+      timerDeadlineUptime: nil,
+      batteryThreshold: .off,
+      power: PowerSnapshot(batteryPercentage: 100, isOnACPower: true),
+      thermalSafetyEnabled: true,
+      thermalState: state
+    )
+  }
+}

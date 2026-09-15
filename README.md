@@ -1,108 +1,168 @@
-# awake (Go 版)
+# Awake
 
-MacBook の蓋を閉じてもスリープさせないための CLI ツール `awake` の **Go 移植版**です。
+**Keep your Mac awake, even with the lid closed.**
 
-オリジナルは [tanabee/awake](https://github.com/tanabee/awake)（bash 実装、約700行）で、以下の記事で紹介されています。
+Awake is a native macOS menu-bar utility for keeping long-running work alive: SSH and remote sessions,
+downloads, builds, backups, data processing, and any other task that should continue while a MacBook lid is closed.
+It is implemented entirely in Swift and uses native macOS frameworks.
 
-- [AI 開発のために Mac の蓋を閉じてもスリープしない CLI「awake」を作った](https://zenn.dev/cureapp/articles/2b09dcc8947af9)
+## Safety model
 
-## オリジナルとの違い
+Awake treats restoration as more important than sleep prevention. For power state managed by Awake, the menu does
+not report a confirmed OFF state until the privileged helper confirms `/usr/bin/pmset -a disablesleep 0`. A
+pre-existing unowned `SleepDisabled 1` state is shown as an explicit warning instead of being silently overwritten.
 
-同じ目的（クラムシェルスリープ抑止・アイドルスリープ抑止・終了時の自動復元）を、bash + `mkfifo` ではなく Go + cgo のネイティブ API 呼び出しで実現しています。
+- The app process owns the IOKit idle-sleep assertion. macOS releases it automatically if the app dies.
+- A minimal root LaunchDaemon owns only the `pmset` change and recovery lease.
+- The helper writes a root-only durable marker before enabling `disablesleep`.
+- An XPC disconnect restores immediately. A 45-second heartbeat expiry is the independent fallback.
+- `launchd` restarts a killed helper; startup detects the marker and restores before accepting work.
+- Failed restoration keeps the marker and retries every five seconds.
+- XPC peers are restricted by bundle identifier and matching signing Team ID. No arbitrary command, path, or argument
+  can cross the privileged boundary.
 
-| 機能 | オリジナル (bash) | 本実装 (Go) |
-|---|---|---|
-| アイドルスリープ抑止 | `caffeinate -is`（外部プロセス） | `IOPMAssertionCreateWithName`（プロセス内蔵、公開API） |
-| 発熱監視 (`-s`) | `osascript` 経由で `NSProcessInfo.thermalState` | cgo + Objective-C ブリッジで直接呼び出し（公開API） |
-| バッテリー監視 (`-b`) | `pmset -g batt` をパース | `IOPSCopyPowerSourcesInfo`（公開API） |
-| クラムシェルスリープ無効化 | `sudo pmset -a disablesleep 1/0` | 同左（`pmset` をそのまま `exec.Command` で呼び出し） |
-| 終了時の確実な復元 | `mkfifo` + root helper プロセス | `os.Pipe()` + `cmd.StdinPipe` 相当の root helper プロセス |
-| 配布形態 | シェルスクリプト一式 | 単一バイナリ |
+The helper is installed from inside the app bundle with `SMAppService`. Awake never opens a Terminal-style `sudo`
+password prompt. macOS presents its native Background Items approval flow when the helper is first registered.
 
-`disablesleep` の切り替えには root 権限が必須（`pmset` の制約）なため、オリジナルと同じ設計思想（**起動時の sudo 1 回だけで root 権限を持つ子プロセスを立ち上げっぱなしにし、パイプの EOF をトリガーに終了時の復元を行う**）を Go でも踏襲しています。これにより、`-t` で長時間の自動停止を指定しても、終了時に sudo パスワードを再度求められることはありません。
+## Features
 
-## 動作要件
+- Menu-bar-only SwiftUI app (`MenuBarExtra`), with no normal Dock icon
+- Awake ON/OFF with clear status
+- Timer: Off, 1, 2, 4, or 8 hours, plus a custom duration
+- Battery Safety: Off, 10%, 20%, or 30%; ignored while on AC power
+- Thermal Safety: automatic stop after `serious` or `critical` persists for three minutes
+- Live battery, power-source, thermal, and remaining-time status
+- Universal 2 app and helper (`x86_64` + `arm64`)
+- Hardened Runtime-ready Developer ID distribution and notarization script
 
-- macOS（Intel / Apple Silicon 両対応。cgo で `IOKit` / `Foundation` フレームワークをリンクしていますが、使用しているAPI自体はどちらのアーキテクチャでも利用可能です。ただし主に Apple Silicon 環境での動作を想定・検証しています）
-- Xcode Command Line Tools（`clang` と各種フレームワークヘッダが必要）
-  ```bash
-  xcode-select --install
-  ```
-- Go 1.21 以降を推奨（`CGO_ENABLED=1` がデフォルトで有効な環境）
+## Architecture
 
-## ビルド方法
-
-リポジトリ直下で以下を実行するだけです。
-
-```bash
-go build -o awake .
+```text
+Awake.app (logged-in user)
+  SwiftUI menu bar and state machine
+  IOKit idle-sleep assertion
+  IOKit battery and AC status
+  ProcessInfo thermal state
+  timer and safety policy
+             |
+             | authenticated NSXPCConnection
+             v
+AwakeHelper (root, SMAppService LaunchDaemon)
+  fixed enable / heartbeat / restore API only
+  durable root-only lease marker
+  /usr/bin/pmset -a disablesleep 1 or 0
+  XPC-disconnect and heartbeat deadman recovery
 ```
 
-単一の `.go` ファイルで完結しているため、`cgo` 用の追加ヘッダファイルなどは不要です。ビルドが成功すると `awake` という単一バイナリが生成されます。
+## Source layout
 
-生成したバイナリは任意の `PATH` の通ったディレクトリに配置してください。
-
-```bash
-cp awake ~/.local/bin/awake
+```text
+Awake.xcodeproj/
+macOS/
+  AwakeApp/       SwiftUI app, lifecycle, XPC client
+  AwakeCore/      assertion, monitoring, safety policy
+  AwakeHelper/    root daemon, pmset adapter, durable lease
+  AwakeShared/    constants and the narrow XPC protocol
+  AwakeTests/     deterministic safety-policy tests
+docs/TESTING.md   privileged and hardware test procedure
+scripts/          Universal build and notarized DMG workflows
 ```
 
-### クロスコンパイルについて
+## Requirements
 
-`cgo` を使用しているため、**必ず macOS 上でネイティブビルドしてください**。他 OS からのクロスコンパイルはできません。また、Intel Mac 向けバイナリと Apple Silicon 向けバイナリを相互にクロスビルドすることもできないため、それぞれのアーキテクチャの実機上でビルドする必要があります。
+- macOS 13 Ventura or later
+- Xcode 16 or later
+- A code-signing team for helper registration
+- Apple Developer Program membership, Developer ID certificates, and notarization credentials for public release
 
-## 使い方
+The deployment target is macOS 13 because both `MenuBarExtra` and the modern `SMAppService` LaunchDaemon API begin
+there. Supporting older systems would require a separate UI path and the deprecated helper-installation model.
 
-### 基本（フォアグラウンド）
+The app is intentionally not App Sandbox-enabled. It uses the Hardened Runtime and exposes no general-purpose root
+API. The current distribution target is Developer ID outside the Mac App Store.
 
-```bash
-awake
-```
+## Configure identifiers before signing
 
-起動時に一度だけ sudo パスワードを求められます。`running` のメッセージが出たら蓋を閉じて OK です。終了する際は `Ctrl+C` を押すと、スリープ設定が自動的に元に戻ります（このとき sudo パスワードは求められません）。
+The checked-in project uses the explicit placeholder prefix `com.example.Awake`. Before a signed development build
+or release, replace every `com.example.Awake` occurrence with a reverse-DNS identifier owned by your organization.
+The app ID, helper ID, Mach service, LaunchDaemon label, marker path, XPC signing requirements, and project build
+settings must stay aligned.
 
-### 時間で自動停止（`-t` / `--timeout`）
-
-```bash
-awake -t 1h30m     # 1時間30分後に自動停止
-awake -t 3600      # 単位なしの整数は秒として扱う（== 1h）
-```
-
-### バッテリー残量で自動停止（`-b` / `--battery`）
-
-```bash
-awake -b 20        # バッテリー残量 20% 以下で自動停止
-```
-
-AC 電源に接続中はチェックをスキップするため、充電中に意図せず止まることはありません。
-
-### 発熱で自動停止（`-s` / `--safe`）
+Verify that no placeholder remains:
 
 ```bash
-awake -s           # 熱圧力が serious 以上の状態が3分続いたら自動停止
+rg 'com\.example\.Awake'
 ```
 
-`NSProcessInfo.thermalState` を60秒ごとにポーリングします。追加ツールやsudoは不要です。
+Then select the same Apple Development Team for both the `Awake` and `AwakeHelper` targets in Xcode.
 
-### 組み合わせ
+## Build
+
+Open `Awake.xcodeproj`, select the `Awake` scheme, and build. For a compile-only unsigned Universal 2 artifact:
 
 ```bash
-awake -t 8h -b 20 -s   # いずれか一つでも条件を満たした時点で自動停止
+./scripts/build-universal.sh
 ```
 
-## 制約
+This creates `build/Awake.app` and verifies both embedded executables contain `x86_64` and `arm64` slices. An unsigned
+build can be inspected but cannot register the privileged helper.
 
-- **macOS 専用**です（Intel / Apple Silicon 両対応、クロスコンパイルは不可）。
-- **sudo が必須**です（`pmset -a disablesleep` が root 権限を要求するため）。起動時の1回のみです。
-- **発熱**：蓋を閉じると排熱がこもります。重い CPU/GPU 負荷を長時間かけるのは避けてください。心配な場合は `-s` を併用してください。
-- **バッテリー**：蓋を閉じてもスリープしなくなるため、バッテリー駆動では当然消費が続きます。長時間の場合は AC に接続するか `-b` で下限を設定してください。
-- OS がクラッシュした場合、root helper ごと終了するため `disablesleep` が `1` のまま残ることがあります。その場合は手動で復元してください。
-  ```bash
-  sudo pmset -a disablesleep 0
-  ```
+For local helper testing, use a signed build in `/Applications`. The first attempt to turn Awake ON registers the
+LaunchDaemon. Approve Awake in **System Settings > General > Login Items & Extensions**, then turn it on again.
 
-## 参考
+## Test
 
-- [オリジナル実装 tanabee/awake (GitHub)](https://github.com/tanabee/awake)
-- [AI 開発のために Mac の蓋を閉じてもスリープしない CLI「awake」を作った (Zenn)](https://zenn.dev/cureapp/articles/2b09dcc8947af9)
-- [`pmset` man page](https://ss64.com/osx/pmset.html)
-- [`caffeinate` man page](https://ss64.com/osx/caffeinate.html)
+```bash
+xcodebuild \
+  -project Awake.xcodeproj \
+  -scheme Awake \
+  -configuration Debug \
+  -destination 'platform=macOS' \
+  test
+```
+
+The full privileged, process-death, reboot, lid-close, Intel, and Apple Silicon procedures are in
+[`docs/TESTING.md`](docs/TESTING.md). These host-level checks are not run automatically because they intentionally
+alter global power behavior or terminate processes.
+
+## Developer ID, notarization, and DMG
+
+Store notarization credentials once, without placing secrets in the repository:
+
+```bash
+xcrun notarytool store-credentials AwakeNotary \
+  --apple-id 'YOUR_APPLE_ID' \
+  --team-id 'YOUR_TEAM_ID' \
+  --password 'APP_SPECIFIC_PASSWORD'
+```
+
+After replacing the placeholder identifiers, run:
+
+```bash
+DEVELOPMENT_TEAM='YOUR_TEAM_ID' \
+NOTARY_PROFILE='AwakeNotary' \
+./scripts/release-notarized-dmg.sh
+```
+
+The script archives a signed Universal 2 app, verifies nested signatures and architectures, notarizes and staples
+the app, creates and signs a DMG, then notarizes, staples, and Gatekeeper-checks that DMG. The output is
+`build/distribution/Awake.dmg`.
+
+## Operational notes
+
+- Install the signed app in `/Applications`; Apple recommends this for an `SMAppService` daemon that must be
+  available during boot.
+- `pmset disablesleep` changes a system-wide setting and requires root. Only the embedded helper performs it.
+- Battery and thermal safety run in the user app. Killing the app still triggers root-side restoration.
+- The idle assertion prevents user-idle system sleep. Lid-close behavior additionally requires the privileged
+  `pmset disablesleep` setting.
+- `disablesleep` is not described in Apple's public `pmset` man page. Validate every supported macOS/hardware release
+  using the manual matrix before shipping.
+- Before deleting the app, turn Awake OFF, confirm `pmset -g` shows `SleepDisabled 0`, and quit Awake.
+
+## References
+
+- [Apple Service Management](https://developer.apple.com/documentation/servicemanagement/)
+- [Apple: Getting Started with SMAppService](https://developer.apple.com/forums/thread/802443)
+- [Apple: Validating the signature of an XPC process](https://developer.apple.com/forums/thread/681053)
+- [Original tanabee/awake](https://github.com/tanabee/awake)
