@@ -25,6 +25,7 @@
 		AA0000110000000000000001 /* AwakeConstants.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = AA10000A0000000000000001 /* AwakeConstants.swift */; };
 		AA0000120000000000000001 /* AwakeHelperProtocol.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = AA10000B0000000000000001 /* AwakeHelperProtocol.swift */; };
 		AA0000130000000000000001 /* AwakeSafetyEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000130000000000000001 /* AwakeSafetyEvaluatorTests.swift */; };
+		AA0000190000000000000001 /* PMSetStateParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000180000000000000001 /* PMSetStateParserTests.swift */; };
 		AA0000140000000000000001 /* AwakeHelper in Copy Helper */ = {isa = PBXBuildFile; fileRef = AA2000020000000000000001 /* AwakeHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		AA0000150000000000000001 /* jp.co.seeds-std.Awake.Helper.plist in Copy Daemon Plist */ = {isa = PBXBuildFile; fileRef = AA1000110000000000000001 /* jp.co.seeds-std.Awake.Helper.plist */; };
 		AA0000160000000000000001 /* PMSetStateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000160000000000000001 /* PMSetStateParser.swift */; };
@@ -76,6 +77,7 @@
 		AA1000110000000000000001 /* jp.co.seeds-std.Awake.Helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = jp.co.seeds-std.Awake.Helper.plist; sourceTree = "<group>"; };
 		AA1000120000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA1000130000000000000001 /* AwakeSafetyEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeSafetyEvaluatorTests.swift; sourceTree = "<group>"; };
+		AA1000180000000000000001 /* PMSetStateParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMSetStateParserTests.swift; sourceTree = "<group>"; };
 		AA1000140000000000000001 /* App Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "App Info.plist"; path = Info.plist; sourceTree = "<group>"; };
 		AA1000150000000000000001 /* Awake.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Awake.entitlements; sourceTree = "<group>"; };
 		AA1000160000000000000001 /* PMSetStateParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PMSetStateParser.swift; sourceTree = "<group>"; };
@@ -135,7 +137,7 @@
 		};
 		AA7000080000000000000001 /* AwakeTests */ = {
 			isa = PBXGroup;
-			children = (AA1000130000000000000001);
+			children = (AA1000130000000000000001, AA1000180000000000000001);
 			path = AwakeTests;
 			sourceTree = "<group>";
 		};
@@ -203,7 +205,7 @@
 /* Begin PBXSourcesBuildPhase section */
 		AA6000010000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000010000000000000001, AA0000020000000000000001, AA0000030000000000000001, AA0000040000000000000001, AA0000050000000000000001, AA0000060000000000000001, AA0000070000000000000001, AA0000080000000000000001, AA0000090000000000000001, AA00000A0000000000000001, AA00000B0000000000000001, AA0000160000000000000001); runOnlyForDeploymentPostprocessing = 0; };
 		AA6000060000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA00000C0000000000000001, AA00000D0000000000000001, AA00000E0000000000000001, AA00000F0000000000000001, AA0000100000000000000001, AA0000110000000000000001, AA0000120000000000000001, AA0000170000000000000001); runOnlyForDeploymentPostprocessing = 0; };
-		AA6000090000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000130000000000000001); runOnlyForDeploymentPostprocessing = 0; };
+		AA6000090000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000130000000000000001, AA0000190000000000000001); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
