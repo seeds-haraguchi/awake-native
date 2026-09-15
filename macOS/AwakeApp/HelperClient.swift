@@ -47,6 +47,7 @@ enum HelperClientError: LocalizedError {
 @MainActor
 final class HelperClient {
   private nonisolated static let replyTimeout: TimeInterval = 10
+  private static let registrationAttempts = 10
 
   private let service = SMAppService.daemon(plistName: AwakeConstants.helperPlistName)
   private var connection: NSXPCConnection?
@@ -104,7 +105,18 @@ final class HelperClient {
   /// the status stays `.enabled` but launchd can no longer find the helper executable.
   func reregister() async throws {
     try await unregister()
-    try registerIfNeeded()
+    // Background Task Management applies the unregistration asynchronously. Registering right away fails with
+    // "Job is not allowed to bootstrap" and leaves the daemon unregistered, so retry while it catches up.
+    for attempt in 1...Self.registrationAttempts {
+      do {
+        try registerIfNeeded()
+        return
+      } catch HelperClientError.requiresApproval {
+        throw HelperClientError.requiresApproval
+      } catch where attempt < Self.registrationAttempts {
+        try await Task.sleep(for: .milliseconds(500))
+      }
+    }
   }
 
   func openApprovalSettings() {

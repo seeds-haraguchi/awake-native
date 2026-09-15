@@ -284,7 +284,11 @@ final class AwakeController: ObservableObject {
     guard let sessionIdentifier else {
       do {
         if isAwake {
-          try await helperClient.restoreOrphanedState()
+          // A failed re-registration at launch leaves no helper to restore with, so register it again first.
+          try helperClient.registerIfNeeded()
+          try await retryingAfterReregistration {
+            try await helperClient.restoreOrphanedState()
+          }
         }
         assertionController.release()
         isAwake = false

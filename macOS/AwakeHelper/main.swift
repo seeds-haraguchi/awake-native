@@ -8,6 +8,8 @@ guard getuid() == 0 else {
   exit(EXIT_FAILURE)
 }
 
+// Resolve the signing identity before Awake.app can be replaced on disk.
+_ = CodeSigningRequirement.currentTeamIdentifier
 let service = HelperService()
 let delegate = HelperListenerDelegate(service: service)
 let listener = NSXPCListener(machServiceName: AwakeConstants.helperMachService)

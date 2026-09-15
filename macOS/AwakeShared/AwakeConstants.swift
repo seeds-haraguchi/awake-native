@@ -32,7 +32,9 @@ enum CodeSigningRequirement {
       + "and certificate leaf[subject.OU] = \"\(teamIdentifier)\""
   }
 
-  static var currentTeamIdentifier: String? {
+  /// Read once at launch. After Awake.app is replaced, a still-running helper can no longer resolve its own
+  /// signature from disk, and a late lookup would fall back to the identifier-only requirement above.
+  static let currentTeamIdentifier: String? = {
     var code: SecCode?
     guard SecCodeCopySelf([], &code) == errSecSuccess, let code else {
       return nil
@@ -53,5 +55,5 @@ enum CodeSigningRequirement {
     }
 
     return dictionary[kSecCodeInfoTeamIdentifier] as? String
-  }
+  }()
 }
