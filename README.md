@@ -37,6 +37,7 @@ Awake 以外が設定した `SleepDisabled 1` が最初から有効な場合は�
 - 温度保護: `serious` または `critical` が 3 分間続くと自動で OFF
 - バッテリー残量、電源、温度状態、タイマー残り時間のリアルタイム表示
 - アプリ・ヘルパーとも Universal 2（`x86_64` + `arm64`）
+- ログイン時の自動起動の ON / OFF（`SMAppService.mainApp`）
 - アプリ内アンインストール
 - Hardened Runtime 対応の Developer ID 配布と、公証済み DMG の作成スクリプト
 
@@ -225,7 +226,7 @@ xcodebuild \
 - `disablesleep` は Apple の公開 `pmset` マニュアルに記載されていません。対応する macOS とハードウェアの組み合わせごとに、
   リリース前に手動テストで確認してください。
 - アンインストールは、メニュー下部の **アンインストール…** から行います。Awake を OFF にしてスリープ設定を元に戻し、
-  ヘルパーの登録と保存した設定を削除して、`Awake.app` をゴミ箱に移動します。root 所有の空ディレクトリ
+  ヘルパーとログイン項目の登録、保存した設定を削除して、`Awake.app` をゴミ箱に移動します。root 所有の空ディレクトリ
   `/var/db/jp.co.seeds-std.Awake` は残ります。
 
 ## トラブルシューティング

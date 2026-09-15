@@ -63,6 +63,13 @@ struct MenuBarContentView: View {
             .labelsHidden()
             .toggleStyle(.switch)
         }
+
+        GridRow {
+          Text("ログイン時に起動")
+          Toggle("ログイン時に起動", isOn: launchAtLoginBinding)
+            .labelsHidden()
+            .toggleStyle(.switch)
+        }
       }
 
       if let errorMessage = controller.errorMessage {
@@ -71,7 +78,7 @@ struct MenuBarContentView: View {
             .font(.caption)
             .foregroundStyle(.orange)
             .fixedSize(horizontal: false, vertical: true)
-          if controller.helperRequiresApproval {
+          if controller.helperRequiresApproval || controller.launchAtLoginRequiresApproval {
             Button("ログイン項目設定を開く") {
               controller.openHelperApprovalSettings()
             }
@@ -109,6 +116,16 @@ struct MenuBarContentView: View {
     }
     .padding(16)
     .frame(width: 380)
+    .onAppear {
+      controller.refreshLaunchAtLoginStatus()
+    }
+  }
+
+  private var launchAtLoginBinding: Binding<Bool> {
+    Binding(
+      get: { controller.launchAtLogin },
+      set: { controller.setLaunchAtLogin($0) }
+    )
   }
 
   private var awakeBinding: Binding<Bool> {
@@ -136,7 +153,7 @@ struct MenuBarContentView: View {
     confirmation.alertStyle = .warning
     confirmation.messageText = "Awakeをアンインストールしますか？"
     confirmation.informativeText =
-      "Awakeをオフにしてスリープ設定を元に戻し、特権ヘルパーの登録と保存した設定を削除します。最後にAwake.appをゴミ箱に移動して終了します。"
+      "Awakeをオフにしてスリープ設定を元に戻し、特権ヘルパーとログイン項目の登録、保存した設定を削除します。最後にAwake.appをゴミ箱に移動して終了します。"
     confirmation.addButton(withTitle: "アンインストール").hasDestructiveAction = true
     confirmation.addButton(withTitle: "キャンセル")
     guard confirmation.runModal() == .alertFirstButtonReturn else { return }
@@ -157,7 +174,7 @@ struct MenuBarContentView: View {
   }
 
   private func finishUninstall(sleepStillDisabled: Bool) async {
-    var lines = ["特権ヘルパーの登録と保存した設定を削除しました。"]
+    var lines = ["特権ヘルパーとログイン項目の登録、保存した設定を削除しました。"]
     do {
       _ = try await NSWorkspace.shared.recycle([Bundle.main.bundleURL])
       lines.append("Awake.appをゴミ箱に移動しました。")

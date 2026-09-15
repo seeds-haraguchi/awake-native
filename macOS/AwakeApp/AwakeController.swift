@@ -12,6 +12,8 @@ final class AwakeController: ObservableObject {
   @Published private(set) var timerDeadline: Date?
   @Published private(set) var lastStopReason: String?
   @Published var errorMessage: String?
+  /// Mirrors `SMAppService.mainApp`; the user can also change it in System Settings.
+  @Published private(set) var launchAtLoginStatus = SMAppService.mainApp.status
 
   @Published var timerPreset: TimerPreset {
     didSet {
@@ -58,6 +60,14 @@ final class AwakeController: ObservableObject {
 
   var helperRequiresApproval: Bool {
     helperClient.serviceStatus == .requiresApproval
+  }
+
+  var launchAtLogin: Bool {
+    launchAtLoginStatus == .enabled || launchAtLoginStatus == .requiresApproval
+  }
+
+  var launchAtLoginRequiresApproval: Bool {
+    launchAtLoginStatus == .requiresApproval
   }
 
   private enum Keys {
@@ -127,6 +137,30 @@ final class AwakeController: ObservableObject {
     }
   }
 
+  func setLaunchAtLogin(_ enabled: Bool) {
+    errorMessage = nil
+    do {
+      if enabled {
+        try SMAppService.mainApp.register()
+      } else {
+        try SMAppService.mainApp.unregister()
+      }
+    } catch {
+      errorMessage =
+        enabled
+        ? "ログイン時に起動する設定にできませんでした。詳細: \(error.localizedDescription)"
+        : "ログイン時に起動しない設定にできませんでした。詳細: \(error.localizedDescription)"
+    }
+    refreshLaunchAtLoginStatus()
+    if launchAtLoginRequiresApproval {
+      errorMessage = "「システム設定」>「一般」>「ログイン項目」でAwakeを許可してください。"
+    }
+  }
+
+  func refreshLaunchAtLoginStatus() {
+    launchAtLoginStatus = SMAppService.mainApp.status
+  }
+
   func openHelperApprovalSettings() {
     helperClient.openApprovalSettings()
   }
@@ -169,6 +203,10 @@ final class AwakeController: ObservableObject {
       }
     }
     try await helperClient.unregister()
+    // Leaving the login item registered would point it at the app in the Trash.
+    if launchAtLogin {
+      try? await SMAppService.mainApp.unregister()
+    }
 
     assertionController.release()
     sessionIdentifier = nil
