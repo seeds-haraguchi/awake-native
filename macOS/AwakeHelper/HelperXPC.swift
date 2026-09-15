@@ -55,6 +55,9 @@ final class HelperListenerDelegate: NSObject, NSXPCListenerDelegate {
     let connectionIdentifier = UUID()
     let endpoint = HelperClientEndpoint(
       connectionIdentifier: connectionIdentifier, service: service)
+    connection.setCodeSigningRequirement(
+      CodeSigningRequirement.forPeer(bundleIdentifier: AwakeConstants.appBundleIdentifier)
+    )
     connection.exportedInterface = NSXPCInterface(with: AwakeHelperProtocol.self)
     connection.exportedObject = endpoint
     connection.invalidationHandler = { [weak service] in

@@ -181,9 +181,9 @@
 			attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 2660; LastUpgradeCheck = 2660; TargetAttributes = {AA4000010000000000000001 = {CreatedOnToolsVersion = 26.6; }; AA4000020000000000000001 = {CreatedOnToolsVersion = 26.6; }; AA4000030000000000000001 = {CreatedOnToolsVersion = 26.6; TestTargetID = AA4000010000000000000001; }; }; };
 			buildConfigurationList = AA8000010000000000000001;
 			compatibilityVersion = "Xcode 15.0";
-			developmentRegion = en;
+			developmentRegion = ja;
 			hasScannedForEncodings = 0;
-			knownRegions = (en, Base);
+			knownRegions = (ja, en, Base);
 			mainGroup = AA7000010000000000000001;
 			productRefGroup = AA7000070000000000000001;
 			projectDirPath = "";

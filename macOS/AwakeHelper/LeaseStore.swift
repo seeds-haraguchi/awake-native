@@ -13,9 +13,9 @@ enum LeaseStoreError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .invalidDirectory:
-      "The recovery-marker directory is not owned by root or has unsafe permissions."
+      "復旧マーカーのディレクトリがroot所有ではないか、安全でない権限が設定されています。"
     case .posix(let operation, let code):
-      "\(operation) failed: \(String(cString: strerror(code)))"
+      "\(operation)に失敗しました。\(String(cString: strerror(code)))"
     }
   }
 }
@@ -41,7 +41,7 @@ final class LeaseStore {
     let descriptor = open(
       temporaryURL.path, O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW, S_IRUSR | S_IWUSR)
     guard descriptor >= 0 else {
-      throw LeaseStoreError.posix(operation: "open marker", code: errno)
+      throw LeaseStoreError.posix(operation: "復旧マーカーを開く処理", code: errno)
     }
 
     var writeError: Error?
@@ -52,7 +52,7 @@ final class LeaseStore {
         let result = Darwin.write(
           descriptor, baseAddress.advanced(by: written), bytes.count - written)
         if result < 0 {
-          writeError = LeaseStoreError.posix(operation: "write marker", code: errno)
+          writeError = LeaseStoreError.posix(operation: "復旧マーカーの書き込み", code: errno)
           break
         }
         written += result
@@ -60,7 +60,7 @@ final class LeaseStore {
     }
 
     if writeError == nil, fsync(descriptor) != 0 {
-      writeError = LeaseStoreError.posix(operation: "fsync marker", code: errno)
+      writeError = LeaseStoreError.posix(operation: "復旧マーカーの同期", code: errno)
     }
     close(descriptor)
 
@@ -72,7 +72,7 @@ final class LeaseStore {
     guard rename(temporaryURL.path, markerURL.path) == 0 else {
       let code = errno
       unlink(temporaryURL.path)
-      throw LeaseStoreError.posix(operation: "rename marker", code: code)
+      throw LeaseStoreError.posix(operation: "復旧マーカーの確定", code: code)
     }
     try syncDirectory()
   }
@@ -80,7 +80,7 @@ final class LeaseStore {
   func clear() throws {
     guard markerExists else { return }
     guard unlink(markerURL.path) == 0 else {
-      throw LeaseStoreError.posix(operation: "remove marker", code: errno)
+      throw LeaseStoreError.posix(operation: "復旧マーカーの削除", code: errno)
     }
     try syncDirectory()
   }
@@ -97,10 +97,10 @@ final class LeaseStore {
     }
 
     guard errno == ENOENT else {
-      throw LeaseStoreError.posix(operation: "inspect marker directory", code: errno)
+      throw LeaseStoreError.posix(operation: "復旧マーカーディレクトリの確認", code: errno)
     }
     guard mkdir(directoryURL.path, S_IRWXU) == 0 else {
-      throw LeaseStoreError.posix(operation: "create marker directory", code: errno)
+      throw LeaseStoreError.posix(operation: "復旧マーカーディレクトリの作成", code: errno)
     }
     try syncParentDirectory()
   }
@@ -108,22 +108,22 @@ final class LeaseStore {
   private func syncDirectory() throws {
     let descriptor = open(directoryURL.path, O_RDONLY)
     guard descriptor >= 0 else {
-      throw LeaseStoreError.posix(operation: "open marker directory", code: errno)
+      throw LeaseStoreError.posix(operation: "復旧マーカーディレクトリを開く処理", code: errno)
     }
     defer { close(descriptor) }
     guard fsync(descriptor) == 0 else {
-      throw LeaseStoreError.posix(operation: "fsync marker directory", code: errno)
+      throw LeaseStoreError.posix(operation: "復旧マーカーディレクトリの同期", code: errno)
     }
   }
 
   private func syncParentDirectory() throws {
     let descriptor = open(directoryURL.deletingLastPathComponent().path, O_RDONLY)
     guard descriptor >= 0 else {
-      throw LeaseStoreError.posix(operation: "open marker parent", code: errno)
+      throw LeaseStoreError.posix(operation: "復旧マーカーの親ディレクトリを開く処理", code: errno)
     }
     defer { close(descriptor) }
     guard fsync(descriptor) == 0 else {
-      throw LeaseStoreError.posix(operation: "fsync marker parent", code: errno)
+      throw LeaseStoreError.posix(operation: "復旧マーカーの親ディレクトリの同期", code: errno)
     }
   }
 }

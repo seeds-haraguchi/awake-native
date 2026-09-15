@@ -37,7 +37,7 @@ final class AwakeController: ObservableObject {
   }
 
   var timerRemaining: String {
-    guard isAwake, let timerDeadlineUptime else { return "Off" }
+    guard isAwake, let timerDeadlineUptime else { return "オフ" }
     let seconds = max(
       0,
       Int((timerDeadlineUptime - ProcessInfo.processInfo.systemUptime).rounded(.up))
@@ -186,7 +186,7 @@ final class AwakeController: ObservableObject {
         assertionController.release()
         isAwake = true
         errorMessage =
-          "Sleep restoration is not yet confirmed. Awake remains shown as ON. \(error.localizedDescription)"
+          "スリープ設定の復旧をまだ確認できません。安全のためAwakeはONと表示しています。詳細: \(error.localizedDescription)"
       }
       return
     }
@@ -205,7 +205,7 @@ final class AwakeController: ObservableObject {
       assertionController.release()
       isAwake = true
       errorMessage =
-        "Sleep restoration is not yet confirmed. The helper will keep retrying. \(error.localizedDescription)"
+        "スリープ設定の復旧をまだ確認できません。ヘルパーが復旧を再試行します。詳細: \(error.localizedDescription)"
     }
   }
 
@@ -221,16 +221,16 @@ final class AwakeController: ObservableObject {
           try await helperClient.restoreOrphanedState()
           isAwake = false
           isTransitioning = false
-          lastStopReason = "Recovered a sleep setting left by an earlier session"
+          lastStopReason = "前回のセッションで残ったスリープ設定を復旧しました"
         } else {
           errorMessage =
-            "SleepDisabled is already active outside this Awake session. Awake will not change a setting owned by another tool."
+            "Awake以外でSleepDisabledが有効になっています。他のツールが設定した状態は変更しません。"
         }
       }
     } catch {
       isAwake = true
       isTransitioning = false
-      errorMessage = "Could not confirm startup recovery: \(error.localizedDescription)"
+      errorMessage = "起動時のスリープ設定復旧を確認できませんでした。詳細: \(error.localizedDescription)"
     }
   }
 
@@ -313,7 +313,7 @@ final class AwakeController: ObservableObject {
     timerDeadline = nil
     timerDeadlineUptime = nil
     isTransitioning = true
-    errorMessage = "The helper connection was lost. Restoring the global sleep setting…"
+    errorMessage = "ヘルパーとの接続が失われました。システムのスリープ設定を復旧しています…"
 
     connectionRecoveryTask = Task { [weak self] in
       guard let self else { return }
@@ -326,7 +326,7 @@ final class AwakeController: ObservableObject {
         do {
           try await self.helperClient.restoreOrphanedState()
           self.isAwake = false
-          self.lastStopReason = "Helper connection lost; sleep setting restored"
+          self.lastStopReason = "ヘルパーとの接続切断後、スリープ設定を復旧しました"
           self.errorMessage = nil
           return
         } catch {
@@ -334,7 +334,7 @@ final class AwakeController: ObservableObject {
             try? await Task.sleep(for: .seconds(5))
           } else {
             self.errorMessage =
-              "Sleep restoration is still unconfirmed. Awake remains shown as ON; the helper deadman continues retrying. \(error.localizedDescription)"
+              "スリープ設定の復旧をまだ確認できません。安全のためAwakeはONと表示し、ヘルパーが復旧を再試行しています。詳細: \(error.localizedDescription)"
           }
         }
       }

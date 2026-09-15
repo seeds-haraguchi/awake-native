@@ -98,14 +98,25 @@ Then select the same Apple Development Team for both the `Awake` and `AwakeHelpe
 
 ## Build
 
-Open `Awake.xcodeproj`, select the `Awake` scheme, and build. For a compile-only unsigned Universal 2 artifact:
+Open `Awake.xcodeproj`, select the same Apple Development Team for the `Awake` and `AwakeHelper` targets, and build.
+For a signed Universal 2 development artifact that can register the privileged helper:
+
+```bash
+DEVELOPMENT_TEAM='YOUR_TEAM_ID' ./scripts/build-development.sh
+```
+
+This creates `build/Awake.app`. Copy it to `/Applications` before turning Awake ON. An Apple-issued signing
+certificate for that Team ID must be installed in the login keychain.
+
+For a compile-only unsigned Universal 2 artifact:
 
 ```bash
 ./scripts/build-universal.sh
 ```
 
-This creates `build/Awake.app` and verifies both embedded executables contain `x86_64` and `arm64` slices. An unsigned
-build can be inspected but cannot register the privileged helper.
+This creates `build/Awake-unsigned.app` and verifies both embedded executables contain `x86_64` and `arm64` slices.
+The unsigned build can be inspected but cannot register the privileged helper and must not be used for functional
+Awake ON/OFF testing.
 
 For local helper testing, use a signed build in `/Applications`. The first attempt to turn Awake ON registers the
 LaunchDaemon. Approve Awake in **System Settings > General > Login Items & Extensions**, then turn it on again.

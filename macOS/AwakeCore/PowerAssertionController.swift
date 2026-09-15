@@ -7,7 +7,7 @@ enum PowerAssertionError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .creationFailed(let code):
-      "Unable to create the idle-sleep assertion (IOKit error \(code))."
+      "アイドルスリープ防止を有効にできませんでした（IOKitエラー: \(code)）。"
     }
   }
 }
@@ -24,7 +24,7 @@ final class PowerAssertionController {
     let result = IOPMAssertionCreateWithName(
       kIOPMAssertionTypePreventUserIdleSystemSleep as CFString,
       IOPMAssertionLevel(kIOPMAssertionLevelOn),
-      "Awake: keep the Mac available for long-running work" as CFString,
+      "Awake: 長時間の処理中もMacを起動したままにする" as CFString,
       &newID
     )
     guard result == kIOReturnSuccess else {

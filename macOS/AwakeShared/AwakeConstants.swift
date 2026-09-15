@@ -35,8 +35,10 @@ enum CodeSigningRequirement {
       return nil
     }
 
+    // kSecCodeInfoTeamIdentifier is only populated when kSecCSSigningInformation is requested.
     var information: CFDictionary?
-    guard SecCodeCopySigningInformation(staticCode, [], &information) == errSecSuccess,
+    let flags = SecCSFlags(rawValue: kSecCSSigningInformation)
+    guard SecCodeCopySigningInformation(staticCode, flags, &information) == errSecSuccess,
       let dictionary = information as? [CFString: Any]
     else {
       return nil

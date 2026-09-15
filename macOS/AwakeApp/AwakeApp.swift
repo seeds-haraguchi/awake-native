@@ -13,7 +13,7 @@ struct AwakeApp: App {
         }
     } label: {
       Label(
-        controller.isAwake ? "Awake is on" : "Awake is off",
+        controller.isAwake ? "AwakeはONです" : "AwakeはOFFです",
         systemImage: controller.isAwake ? "sun.max.fill" : "moon.zzz"
       )
     }

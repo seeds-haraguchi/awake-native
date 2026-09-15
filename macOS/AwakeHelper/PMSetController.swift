@@ -10,15 +10,15 @@ enum PMSetError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .notRunningAsRoot:
-      "The Awake helper must run as root."
+      "Awakeのヘルパーはroot権限で実行する必要があります。"
     case .launchFailed(let error):
-      "Unable to launch pmset: \(error.localizedDescription)"
+      "pmsetを起動できませんでした。詳細: \(error.localizedDescription)"
     case .commandFailed(let status, let message):
-      "pmset failed with status \(status): \(message)"
+      "pmsetが終了ステータス\(status)で失敗しました。\(message)"
     case .unableToReadState:
-      "pmset did not report the system SleepDisabled state."
+      "pmsetからシステムのSleepDisabled状態を取得できませんでした。"
     case .stateMismatch(let expectedDisabled):
-      "pmset completed, but SleepDisabled was not \(expectedDisabled ? 1 : 0)."
+      "pmsetは完了しましたが、SleepDisabledが\(expectedDisabled ? 1 : 0)になっていません。"
     }
   }
 }
@@ -46,7 +46,7 @@ struct PMSetController {
       let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
       let message =
         String(data: data, encoding: .utf8)?
-        .trimmingCharacters(in: .whitespacesAndNewlines) ?? "No error output"
+        .trimmingCharacters(in: .whitespacesAndNewlines) ?? "エラー出力なし"
       throw PMSetError.commandFailed(status: process.terminationStatus, message: message)
     }
 
@@ -76,7 +76,7 @@ struct PMSetController {
       let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
       let message =
         String(data: data, encoding: .utf8)?
-        .trimmingCharacters(in: .whitespacesAndNewlines) ?? "No error output"
+        .trimmingCharacters(in: .whitespacesAndNewlines) ?? "エラー出力なし"
       throw PMSetError.commandFailed(status: process.terminationStatus, message: message)
     }
 

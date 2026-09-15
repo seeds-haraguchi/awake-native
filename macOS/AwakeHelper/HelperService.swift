@@ -52,7 +52,7 @@ final class HelperService: @unchecked Sendable {
     let reply = CallbackBox(reply)
     queue.async {
       guard UUID(uuidString: sessionIdentifier) != nil else {
-        reply.callback(false, "Invalid session identifier.")
+        reply.callback(false, "セッション識別子が無効です。")
         return
       }
 
@@ -60,7 +60,7 @@ final class HelperService: @unchecked Sendable {
         guard lease.sessionIdentifier == sessionIdentifier,
           lease.connectionIdentifier == connectionIdentifier
         else {
-          reply.callback(false, "Another Awake session is already active.")
+          reply.callback(false, "別のAwakeセッションがすでに有効です。")
           return
         }
         self.activeLease?.expiresAt = self.nextHeartbeatDeadline()
@@ -71,7 +71,7 @@ final class HelperService: @unchecked Sendable {
       if self.store.markerExists {
         self.recoverMarkedState(reason: "enable preflight")
         guard !self.store.markerExists else {
-          reply.callback(false, "A previous sleep-setting recovery is still pending.")
+          reply.callback(false, "以前のスリープ設定の復旧がまだ完了していません。")
           return
         }
       }
@@ -80,7 +80,7 @@ final class HelperService: @unchecked Sendable {
         guard try !self.pmset.readSleepDisabled() else {
           reply.callback(
             false,
-            "SleepDisabled is already active outside Awake. Disable it with the tool that enabled it before starting Awake."
+            "Awake以外でSleepDisabledがすでに有効です。設定したツールで無効にしてからAwakeを開始してください。"
           )
           return
         }
@@ -127,7 +127,7 @@ final class HelperService: @unchecked Sendable {
         lease.sessionIdentifier == sessionIdentifier,
         lease.connectionIdentifier == connectionIdentifier
       else {
-        reply.callback(false, "The Awake lease is not active.")
+        reply.callback(false, "Awakeの制御セッションが有効ではありません。")
         return
       }
       self.activeLease?.expiresAt = self.nextHeartbeatDeadline()
@@ -146,7 +146,7 @@ final class HelperService: @unchecked Sendable {
         lease.sessionIdentifier != sessionIdentifier
           || lease.connectionIdentifier != connectionIdentifier
       {
-        reply.callback(false, "The active lease belongs to another Awake session.")
+        reply.callback(false, "有効な制御セッションは別のAwakeセッションに属しています。")
         return
       }
       self.restore(reason: "explicit disable", reply: reply.callback)

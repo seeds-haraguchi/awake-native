@@ -5,6 +5,7 @@ enum HelperClientError: LocalizedError {
   case notRegistered
   case requiresApproval
   case notFound
+  case appleSignatureRequired
   case registrationFailed(Error)
   case connectionFailed(String)
   case operationFailed(String)
@@ -12,15 +13,17 @@ enum HelperClientError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .notRegistered:
-      "The privileged helper is not installed. Turn Awake on to request approval."
+      "特権ヘルパーの登録状態を確認できませんでした。Awakeを再起動して、もう一度お試しください。"
     case .requiresApproval:
-      "Allow Awake in System Settings > General > Login Items, then try again."
+      "「システム設定」>「一般」>「ログイン項目」でAwakeを許可してから、もう一度お試しください。"
     case .notFound:
-      "The privileged helper is missing from Awake.app. Reinstall the app in /Applications."
+      "Awake.app内に特権ヘルパーまたはLaunchDaemon設定がありません。アプリを再インストールしてください。"
+    case .appleSignatureRequired:
+      "このAwake.appはApple発行の証明書で署名されていないため、特権ヘルパーを登録できません。署名済みのアプリを「アプリケーション」フォルダに配置してください。"
     case .registrationFailed(let error):
-      "Unable to register the privileged helper: \(error.localizedDescription)"
+      "特権ヘルパーを登録できませんでした。詳細: \(error.localizedDescription)"
     case .connectionFailed(let message):
-      "Unable to communicate with the privileged helper: \(message)"
+      "特権ヘルパーと通信できませんでした。詳細: \(message)"
     case .operationFailed(let message):
       message
     }
@@ -36,14 +39,17 @@ final class HelperClient {
   var serviceStatus: SMAppService.Status { service.status }
 
   func registerIfNeeded() throws {
+    try validateEmbeddedHelper()
+    guard CodeSigningRequirement.currentTeamIdentifier != nil else {
+      throw HelperClientError.appleSignatureRequired
+    }
+
     switch service.status {
     case .enabled:
       return
     case .requiresApproval:
       throw HelperClientError.requiresApproval
-    case .notFound:
-      throw HelperClientError.notFound
-    case .notRegistered:
+    case .notRegistered, .notFound:
       do {
         try service.register()
       } catch {
@@ -53,10 +59,13 @@ final class HelperClient {
         throw HelperClientError.registrationFailed(error)
       }
       guard service.status == .enabled else {
-        throw HelperClientError.requiresApproval
+        if service.status == .requiresApproval {
+          throw HelperClientError.requiresApproval
+        }
+        throw HelperClientError.notRegistered
       }
     @unknown default:
-      throw HelperClientError.notFound
+      throw HelperClientError.notRegistered
     }
   }
 
@@ -73,7 +82,7 @@ final class HelperClient {
             throwing: HelperClientError.connectionFailed(error.localizedDescription))
         }) as? AwakeHelperProtocol
       else {
-        continuation.resume(throwing: HelperClientError.connectionFailed("Invalid XPC interface."))
+        continuation.resume(throwing: HelperClientError.connectionFailed("XPCインターフェースが無効です。"))
         return
       }
       proxy.status { enabled, ownedByAwake, sessionIdentifier, errorMessage in
@@ -147,6 +156,22 @@ final class HelperClient {
     return newConnection
   }
 
+  private func validateEmbeddedHelper() throws {
+    let bundleURL = Bundle.main.bundleURL
+    let helperURL = bundleURL.appendingPathComponent(
+      "Contents/MacOS/\(AwakeConstants.helperExecutableName)"
+    )
+    let daemonPlistURL = bundleURL.appendingPathComponent(
+      "Contents/Library/LaunchDaemons/\(AwakeConstants.helperPlistName)"
+    )
+
+    guard FileManager.default.isExecutableFile(atPath: helperURL.path),
+      FileManager.default.fileExists(atPath: daemonPlistURL.path)
+    else {
+      throw HelperClientError.notFound
+    }
+  }
+
   private func operationProxy(
     connection: NSXPCConnection,
     continuation: CheckedContinuation<Void, Error>
@@ -157,7 +182,7 @@ final class HelperClient {
           throwing: HelperClientError.connectionFailed(error.localizedDescription))
       }) as? AwakeHelperProtocol
     else {
-      continuation.resume(throwing: HelperClientError.connectionFailed("Invalid XPC interface."))
+      continuation.resume(throwing: HelperClientError.connectionFailed("XPCインターフェースが無効です。"))
       return nil
     }
     return proxy
@@ -199,7 +224,7 @@ final class HelperClient {
       continuation.resume()
     } else {
       continuation.resume(
-        throwing: HelperClientError.operationFailed(errorMessage ?? "The helper operation failed.")
+        throwing: HelperClientError.operationFailed(errorMessage ?? "ヘルパーの処理に失敗しました。")
       )
     }
   }

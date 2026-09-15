@@ -73,6 +73,14 @@ final class AwakeSafetyEvaluatorTests: XCTestCase {
     XCTAssertNil(PMSetStateParser.parseSleepDisabled(from: " sleep 1\n"))
   }
 
+  func testUserFacingStatusTextUsesJapanese() {
+    XCTAssertEqual(TimerPreset.off.title, "オフ")
+    XCTAssertEqual(TimerPreset.custom.title, "任意時間")
+    XCTAssertEqual(BatterySafetyThreshold.off.title, "オフ")
+    XCTAssertEqual(ProcessInfo.ThermalState.nominal.displayName, "通常")
+    XCTAssertEqual(AwakeStopReason.timer.message, "タイマーが終了したため、Awakeをオフにしました")
+  }
+
   private func evaluateThermal(
     _ evaluator: inout AwakeSafetyEvaluator,
     state: ProcessInfo.ThermalState,

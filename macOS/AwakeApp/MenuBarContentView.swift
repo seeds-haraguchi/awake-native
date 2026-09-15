@@ -10,12 +10,12 @@ struct MenuBarContentView: View {
         VStack(alignment: .leading, spacing: 2) {
           Text("Awake")
             .font(.title2.weight(.semibold))
-          Text("Keep your Mac awake, even with the lid closed.")
+          Text("MacBookの蓋を閉じても、処理を継続します。")
             .font(.caption)
             .foregroundStyle(.secondary)
         }
         Spacer()
-        Toggle("Awake", isOn: awakeBinding)
+        Toggle("Awakeを有効にする", isOn: awakeBinding)
           .labelsHidden()
           .toggleStyle(.switch)
           .disabled(controller.isTransitioning)
@@ -27,8 +27,8 @@ struct MenuBarContentView: View {
 
       Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
         GridRow {
-          Text("Timer")
-          Picker("Timer", selection: $controller.timerPreset) {
+          Text("タイマー")
+          Picker("タイマー", selection: $controller.timerPreset) {
             ForEach(TimerPreset.allCases) { preset in
               Text(preset.title).tag(preset)
             }
@@ -38,9 +38,9 @@ struct MenuBarContentView: View {
 
         if controller.timerPreset == .custom {
           GridRow {
-            Text("Duration")
+            Text("時間")
             Stepper(
-              "\(controller.customTimerMinutes) minutes",
+              "\(controller.customTimerMinutes)分",
               value: $controller.customTimerMinutes,
               in: 1...(7 * 24 * 60)
             )
@@ -48,8 +48,8 @@ struct MenuBarContentView: View {
         }
 
         GridRow {
-          Text("Battery Safety")
-          Picker("Battery Safety", selection: $controller.batteryThreshold) {
+          Text("バッテリー保護")
+          Picker("バッテリー保護", selection: $controller.batteryThreshold) {
             ForEach(BatterySafetyThreshold.allCases) { threshold in
               Text(threshold.title).tag(threshold)
             }
@@ -58,8 +58,8 @@ struct MenuBarContentView: View {
         }
 
         GridRow {
-          Text("Thermal Safety")
-          Toggle("Thermal Safety", isOn: $controller.thermalSafetyEnabled)
+          Text("温度保護")
+          Toggle("温度保護", isOn: $controller.thermalSafetyEnabled)
             .labelsHidden()
             .toggleStyle(.switch)
         }
@@ -72,7 +72,7 @@ struct MenuBarContentView: View {
             .foregroundStyle(.orange)
             .fixedSize(horizontal: false, vertical: true)
           if controller.helperRequiresApproval {
-            Button("Open Login Items Settings") {
+            Button("ログイン項目設定を開く") {
               controller.openHelperApprovalSettings()
             }
           }
@@ -86,11 +86,11 @@ struct MenuBarContentView: View {
       Divider()
 
       HStack {
-        Text("Battery Safety is ignored while connected to AC power.")
+        Text("AC電源接続中はバッテリー保護を適用しません。")
           .font(.caption2)
           .foregroundStyle(.secondary)
         Spacer()
-        Button("Quit Awake") {
+        Button("Awakeを終了") {
           NSApp.terminate(nil)
         }
         .keyboardShortcut("q")
@@ -110,17 +110,17 @@ struct MenuBarContentView: View {
   private var statusCard: some View {
     Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 6) {
       statusRow("Awake", awakeStatus)
-      statusRow("Battery", controller.power.batteryPercentage.map { "\($0)%" } ?? "N/A")
-      statusRow("Power", controller.power.isOnACPower ? "AC" : "Battery")
-      statusRow("Thermal", controller.thermalState.displayName)
-      statusRow("Timer remaining", controller.timerRemaining)
+      statusRow("バッテリー", controller.power.batteryPercentage.map { "\($0)%" } ?? "利用不可")
+      statusRow("電源", controller.power.isOnACPower ? "AC" : "バッテリー")
+      statusRow("温度状態", controller.thermalState.displayName)
+      statusRow("残り時間", controller.timerRemaining)
     }
     .padding(12)
     .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
   }
 
   private var awakeStatus: String {
-    if controller.isAwake, controller.isTransitioning { return "RESTORING…" }
+    if controller.isAwake, controller.isTransitioning { return "復旧中…" }
     return controller.isAwake ? "ON" : "OFF"
   }
 

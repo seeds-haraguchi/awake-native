@@ -5,7 +5,7 @@ repo_dir="${0:A:h:h}"
 build_dir="$repo_dir/build"
 derived_data="$build_dir/DerivedData"
 product="$derived_data/Build/Products/Release/Awake.app"
-output="$build_dir/Awake.app"
+output="$build_dir/Awake-unsigned.app"
 
 /usr/bin/xcodebuild \
   -project "$repo_dir/Awake.xcodeproj" \
@@ -18,6 +18,7 @@ output="$build_dir/Awake.app"
   ONLY_ACTIVE_ARCH=NO \
   build
 
+/bin/rm -rf "$output"
 /usr/bin/ditto "$product" "$output"
 
 app_archs="$(/usr/bin/lipo -archs "$output/Contents/MacOS/Awake")"
@@ -32,6 +33,8 @@ if [[ "$helper_archs" != *arm64* || "$helper_archs" != *x86_64* ]]; then
   exit 1
 fi
 
-print "Built unsigned Universal 2 app: $output"
+print "Built compile-only unsigned Universal 2 app: $output"
 print "Awake architectures: $app_archs"
 print "Helper architectures: $helper_archs"
+print -u2 "Warning: this unsigned artifact cannot register the privileged helper."
+print -u2 "Use scripts/build-development.sh with an Apple Development signing team for local testing."

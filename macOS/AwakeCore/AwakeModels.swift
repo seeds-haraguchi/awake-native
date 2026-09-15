@@ -12,12 +12,12 @@ enum TimerPreset: String, CaseIterable, Identifiable {
 
   var title: String {
     switch self {
-    case .off: "Off"
-    case .oneHour: "1 hour"
-    case .twoHours: "2 hours"
-    case .fourHours: "4 hours"
-    case .eightHours: "8 hours"
-    case .custom: "Custom"
+    case .off: "オフ"
+    case .oneHour: "1時間"
+    case .twoHours: "2時間"
+    case .fourHours: "4時間"
+    case .eightHours: "8時間"
+    case .custom: "任意時間"
     }
   }
 
@@ -40,7 +40,7 @@ enum BatterySafetyThreshold: Int, CaseIterable, Identifiable {
   case thirty = 30
 
   var id: Int { rawValue }
-  var title: String { self == .off ? "Off" : "\(rawValue)%" }
+  var title: String { self == .off ? "オフ" : "\(rawValue)%" }
 }
 
 enum AwakeStopReason: Equatable {
@@ -52,12 +52,12 @@ enum AwakeStopReason: Equatable {
 
   var message: String {
     switch self {
-    case .user: "Turned off"
-    case .timer: "Timer elapsed"
+    case .user: "Awakeをオフにしました"
+    case .timer: "タイマーが終了したため、Awakeをオフにしました"
     case .battery(let percent, let threshold):
-      "Battery reached \(percent)% (safety threshold: \(threshold)%)"
-    case .thermal: "Serious thermal pressure continued for 3 minutes"
-    case .quit: "App quit"
+      "バッテリー残量が\(percent)%になったため、Awakeをオフにしました（設定値: \(threshold)%）"
+    case .thermal: "高い温度状態が3分間継続したため、Awakeをオフにしました"
+    case .quit: "アプリの終了時にAwakeをオフにしました"
     }
   }
 }
@@ -70,11 +70,11 @@ struct PowerSnapshot: Equatable {
 extension ProcessInfo.ThermalState {
   var displayName: String {
     switch self {
-    case .nominal: "Nominal"
-    case .fair: "Fair"
-    case .serious: "Serious"
-    case .critical: "Critical"
-    @unknown default: "Unknown"
+    case .nominal: "通常"
+    case .fair: "やや高い"
+    case .serious: "高い"
+    case .critical: "危険"
+    @unknown default: "不明"
     }
   }
 
