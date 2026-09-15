@@ -21,7 +21,13 @@ final class AwakeController: ObservableObject {
   }
   @Published var customTimerMinutes: Int {
     didSet {
-      customTimerMinutes = min(7 * 24 * 60, max(1, customTimerMinutes))
+      // Assigning a @Published property inside its own didSet re-enters didSet,
+      // so only reassign when clamping actually changes the value.
+      let clamped = min(7 * 24 * 60, max(1, customTimerMinutes))
+      guard clamped == customTimerMinutes else {
+        customTimerMinutes = clamped
+        return
+      }
       defaults.set(customTimerMinutes, forKey: Keys.customTimerMinutes)
       if isAwake, timerPreset == .custom { resetTimerDeadline() }
     }

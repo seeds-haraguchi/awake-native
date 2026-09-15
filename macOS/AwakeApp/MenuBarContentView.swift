@@ -86,9 +86,13 @@ struct MenuBarContentView: View {
       Divider()
 
       HStack {
-        Text("AC電源接続中はバッテリー保護を適用しません。")
-          .font(.caption2)
-          .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 2) {
+          Text("AC電源接続中はバッテリー保護を適用しません。")
+          Text(appVersion)
+            .textSelection(.enabled)
+        }
+        .font(.caption2)
+        .foregroundStyle(.secondary)
         Spacer()
         Button("Awakeを終了") {
           NSApp.terminate(nil)
@@ -117,6 +121,13 @@ struct MenuBarContentView: View {
     }
     .padding(12)
     .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+  }
+
+  private var appVersion: String {
+    let info = Bundle.main.infoDictionary
+    let version = info?["CFBundleShortVersionString"] as? String ?? "不明"
+    let build = info?["CFBundleVersion"] as? String ?? "不明"
+    return "バージョン \(version) (\(build))"
   }
 
   private var awakeStatus: String {

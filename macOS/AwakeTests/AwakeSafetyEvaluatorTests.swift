@@ -81,6 +81,26 @@ final class AwakeSafetyEvaluatorTests: XCTestCase {
     XCTAssertEqual(AwakeStopReason.timer.message, "タイマーが終了したため、Awakeをオフにしました")
   }
 
+  @MainActor
+  func testCustomTimerMinutesClampsWithoutRecursion() throws {
+    let suiteName = "AwakeTests.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+    let controller = AwakeController(defaults: defaults)
+
+    controller.customTimerMinutes = 91
+    XCTAssertEqual(controller.customTimerMinutes, 91)
+    XCTAssertEqual(defaults.integer(forKey: "customTimerMinutes"), 91)
+
+    controller.customTimerMinutes = 0
+    XCTAssertEqual(controller.customTimerMinutes, 1)
+    XCTAssertEqual(defaults.integer(forKey: "customTimerMinutes"), 1)
+
+    controller.customTimerMinutes = 7 * 24 * 60 + 1
+    XCTAssertEqual(controller.customTimerMinutes, 7 * 24 * 60)
+    XCTAssertEqual(defaults.integer(forKey: "customTimerMinutes"), 7 * 24 * 60)
+  }
+
   private func evaluateThermal(
     _ evaluator: inout AwakeSafetyEvaluator,
     state: ProcessInfo.ThermalState,
