@@ -21,7 +21,7 @@ enum LeaseStoreError: LocalizedError {
 }
 
 final class LeaseStore {
-  private let directoryURL = URL(fileURLWithPath: "/var/db/com.example.Awake", isDirectory: true)
+  private let directoryURL = URL(fileURLWithPath: "/var/db/jp.co.seeds-std.Awake", isDirectory: true)
   private var markerURL: URL { directoryURL.appendingPathComponent("active-lease.json") }
 
   var markerExists: Bool {

@@ -7,11 +7,7 @@ derived_data="$build_dir/DevelopmentDerivedData"
 product="$derived_data/Build/Products/Debug/Awake.app"
 output="$build_dir/Awake.app"
 
-if [[ -z "${DEVELOPMENT_TEAM:-}" ]]; then
-  print -u2 "Set DEVELOPMENT_TEAM to your Apple Developer Team ID."
-  print -u2 "Example: DEVELOPMENT_TEAM=ABCDE12345 ./scripts/build-development.sh"
-  exit 1
-fi
+DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM:-VKKULG2DQ5}"
 
 /usr/bin/xcodebuild \
   -project "$repo_dir/Awake.xcodeproj" \

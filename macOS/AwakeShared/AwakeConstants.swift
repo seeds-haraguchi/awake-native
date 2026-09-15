@@ -2,10 +2,10 @@ import Foundation
 import Security
 
 enum AwakeConstants {
-  static let appBundleIdentifier = "com.example.Awake"
-  static let helperBundleIdentifier = "com.example.Awake.Helper"
-  static let helperMachService = "com.example.Awake.Helper"
-  static let helperPlistName = "com.example.Awake.Helper.plist"
+  static let appBundleIdentifier = "jp.co.seeds-std.Awake"
+  static let helperBundleIdentifier = "jp.co.seeds-std.Awake.Helper"
+  static let helperMachService = "jp.co.seeds-std.Awake.Helper"
+  static let helperPlistName = "jp.co.seeds-std.Awake.Helper.plist"
   static let helperExecutableName = "AwakeHelper"
 
   static let heartbeatInterval: TimeInterval = 10

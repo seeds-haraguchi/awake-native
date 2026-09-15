@@ -81,28 +81,26 @@ there. Supporting older systems would require a separate UI path and the depreca
 The app is intentionally not App Sandbox-enabled. It uses the Hardened Runtime and exposes no general-purpose root
 API. The current distribution target is Developer ID outside the Mac App Store.
 
-## Configure identifiers before signing
+## Identifiers and signing team
 
-The checked-in project uses the explicit placeholder prefix `com.example.Awake`. Before a signed development build
-or release, replace every `com.example.Awake` occurrence with a reverse-DNS identifier owned by your organization.
-The app ID, helper ID, Mach service, LaunchDaemon label, marker path, XPC signing requirements, and project build
-settings must stay aligned.
+| Item | Value |
+| --- | --- |
+| App bundle ID | `jp.co.seeds-std.Awake` |
+| Helper bundle ID / Mach service / LaunchDaemon label | `jp.co.seeds-std.Awake.Helper` |
+| Lease marker directory | `/var/db/jp.co.seeds-std.Awake` |
+| Apple Developer Team ID | `VKKULG2DQ5` |
 
-Verify that no placeholder remains:
-
-```bash
-rg 'com\.example\.Awake'
-```
-
-Then select the same Apple Development Team for both the `Awake` and `AwakeHelper` targets in Xcode.
+The Team ID is not a secret; it is embedded in every signed binary. It is set in the project build settings and used
+as the default by the build scripts. The app ID, helper ID, Mach service, LaunchDaemon label, marker path, XPC signing
+requirements, and project build settings must stay aligned.
 
 ## Build
 
-Open `Awake.xcodeproj`, select the same Apple Development Team for the `Awake` and `AwakeHelper` targets, and build.
+Open `Awake.xcodeproj` and build. Both the `Awake` and `AwakeHelper` targets use Team `VKKULG2DQ5`.
 For a signed Universal 2 development artifact that can register the privileged helper:
 
 ```bash
-DEVELOPMENT_TEAM='YOUR_TEAM_ID' ./scripts/build-development.sh
+./scripts/build-development.sh
 ```
 
 This creates `build/Awake.app`. Copy it to `/Applications` before turning Awake ON. An Apple-issued signing
@@ -143,16 +141,14 @@ Store notarization credentials once, without placing secrets in the repository:
 ```bash
 xcrun notarytool store-credentials AwakeNotary \
   --apple-id 'YOUR_APPLE_ID' \
-  --team-id 'YOUR_TEAM_ID' \
+  --team-id 'VKKULG2DQ5' \
   --password 'APP_SPECIFIC_PASSWORD'
 ```
 
-After replacing the placeholder identifiers, run:
+Then run:
 
 ```bash
-DEVELOPMENT_TEAM='YOUR_TEAM_ID' \
-NOTARY_PROFILE='AwakeNotary' \
-./scripts/release-notarized-dmg.sh
+NOTARY_PROFILE='AwakeNotary' ./scripts/release-notarized-dmg.sh
 ```
 
 The script archives a signed Universal 2 app, verifies nested signatures and architectures, notarizes and staples

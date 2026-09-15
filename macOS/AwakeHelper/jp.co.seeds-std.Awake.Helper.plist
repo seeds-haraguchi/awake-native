@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.example.Awake.Helper</string>
+    <string>jp.co.seeds-std.Awake.Helper</string>
     <key>BundleProgram</key>
     <string>Contents/MacOS/AwakeHelper</string>
     <key>MachServices</key>
     <dict>
-        <key>com.example.Awake.Helper</key>
+        <key>jp.co.seeds-std.Awake.Helper</key>
         <true/>
     </dict>
     <key>RunAtLoad</key>

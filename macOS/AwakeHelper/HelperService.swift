@@ -16,7 +16,7 @@ final class HelperService: @unchecked Sendable {
     var expiresAt: DispatchTime
   }
 
-  private let queue = DispatchQueue(label: "com.example.Awake.Helper.state")
+  private let queue = DispatchQueue(label: "jp.co.seeds-std.Awake.Helper.state")
   private let store = LeaseStore()
   private let pmset = PMSetController()
   private let logger = Logger(subsystem: AwakeConstants.helperBundleIdentifier, category: "helper")

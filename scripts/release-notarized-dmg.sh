@@ -10,14 +10,10 @@ dmg_path="$output_dir/Awake.dmg"
 staging_dir="$output_dir/dmg-root"
 identity="${SIGNING_IDENTITY:-Developer ID Application}"
 
-if [[ -z "${DEVELOPMENT_TEAM:-}" || -z "${NOTARY_PROFILE:-}" ]]; then
-  print -u2 "Set DEVELOPMENT_TEAM and NOTARY_PROFILE before running this script."
-  exit 1
-fi
+DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM:-VKKULG2DQ5}"
 
-if /usr/bin/grep -Rqs 'com.example.Awake' \
-  "$repo_dir/macOS" "$repo_dir/Awake.xcodeproj/project.pbxproj"; then
-  print -u2 "Replace the com.example.Awake placeholder identifiers before distribution."
+if [[ -z "${NOTARY_PROFILE:-}" ]]; then
+  print -u2 "Set NOTARY_PROFILE before running this script."
   exit 1
 fi
 
