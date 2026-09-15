@@ -151,23 +151,30 @@ final class AwakeController: ObservableObject {
     guard !isTransitioning else {
       throw HelperClientError.operationFailed("処理中です。完了してからもう一度お試しください。")
     }
-    if isAwake {
-      await stopAwake(reason: .user)
-      guard !isAwake else {
-        throw HelperClientError.operationFailed(
-          errorMessage ?? "スリープ設定を復旧できなかったため、アンインストールを中止しました。")
-      }
-    }
 
     isTransitioning = true
     errorMessage = nil
     defer { isTransitioning = false }
 
     if helperClient.serviceStatus == .enabled {
-      // Clear any durable recovery marker while the daemon can still act on it.
-      try await helperClient.restoreOrphanedState()
+      do {
+        // Restores the active session, if any, and clears the durable recovery marker.
+        try await helperClient.restoreOrphanedState()
+      } catch let error as HelperClientError where error.isHelperUnreachable {
+        // A helper that launchd cannot start can neither restore nor hold SleepDisabled, so removing
+        // its registration loses nothing. The caller reports a SleepDisabled value left behind.
+      } catch {
+        throw HelperClientError.operationFailed(
+          "スリープ設定を復旧できなかったため、アンインストールを中止しました。詳細: \(error.localizedDescription)")
+      }
     }
     try await helperClient.unregister()
+
+    assertionController.release()
+    sessionIdentifier = nil
+    isAwake = false
+    timerDeadline = nil
+    timerDeadlineUptime = nil
 
     for key in [
       Keys.timerPreset, Keys.customTimerMinutes, Keys.batteryThreshold, Keys.thermalSafety,
@@ -203,7 +210,9 @@ final class AwakeController: ObservableObject {
     do {
       try helperClient.registerIfNeeded()
       let sessionIdentifier = UUID().uuidString
-      try await helperClient.enable(sessionIdentifier: sessionIdentifier)
+      try await retryingAfterReregistration {
+        try await helperClient.enable(sessionIdentifier: sessionIdentifier)
+      }
       do {
         try assertionController.acquire()
       } catch {
@@ -275,7 +284,7 @@ final class AwakeController: ObservableObject {
     guard helperClient.serviceStatus == .enabled else { return }
     do {
       // Starting the daemon also executes its marker-based startup recovery.
-      let status = try await helperClient.status()
+      let status = try await retryingAfterReregistration { try await helperClient.status() }
       if status.enabled {
         isAwake = true
         if status.ownedByAwake {
@@ -293,6 +302,18 @@ final class AwakeController: ObservableObject {
       isAwake = true
       isTransitioning = false
       errorMessage = "起動時のスリープ設定復旧を確認できませんでした。詳細: \(error.localizedDescription)"
+    }
+  }
+
+  /// Runs `operation` again after re-registering the helper when the registered helper cannot be reached.
+  private func retryingAfterReregistration<Value>(
+    _ operation: () async throws -> Value
+  ) async throws -> Value {
+    do {
+      return try await operation()
+    } catch let error as HelperClientError where error.isHelperUnreachable {
+      try await helperClient.reregister()
+      return try await operation()
     }
   }
 

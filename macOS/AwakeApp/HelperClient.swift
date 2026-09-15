@@ -9,7 +9,16 @@ enum HelperClientError: LocalizedError {
   case registrationFailed(Error)
   case unregistrationFailed(Error)
   case connectionFailed(String)
+  case helperNotResponding
   case operationFailed(String)
+
+  /// The request never reached a running helper, so the helper cannot have acted on it.
+  var isHelperUnreachable: Bool {
+    switch self {
+    case .connectionFailed, .helperNotResponding: true
+    default: false
+    }
+  }
 
   var errorDescription: String? {
     switch self {
@@ -27,6 +36,8 @@ enum HelperClientError: LocalizedError {
       "特権ヘルパーの登録を削除できませんでした。詳細: \(error.localizedDescription)"
     case .connectionFailed(let message):
       "特権ヘルパーと通信できませんでした。詳細: \(message)"
+    case .helperNotResponding:
+      "特権ヘルパーが応答しません。Awakeを再起動して、もう一度お試しください。"
     case .operationFailed(let message):
       message
     }
@@ -35,6 +46,8 @@ enum HelperClientError: LocalizedError {
 
 @MainActor
 final class HelperClient {
+  private nonisolated static let replyTimeout: TimeInterval = 10
+
   private let service = SMAppService.daemon(plistName: AwakeConstants.helperPlistName)
   private var connection: NSXPCConnection?
   var onConnectionLost: (() -> Void)?
@@ -87,77 +100,44 @@ final class HelperClient {
     }
   }
 
+  /// Submits the daemon again from this app bundle. When Awake.app is replaced while its daemon is registered,
+  /// the status stays `.enabled` but launchd can no longer find the helper executable.
+  func reregister() async throws {
+    try await unregister()
+    try registerIfNeeded()
+  }
+
   func openApprovalSettings() {
     SMAppService.openSystemSettingsLoginItems()
   }
 
   func status() async throws -> (enabled: Bool, ownedByAwake: Bool, sessionIdentifier: String?) {
-    let connection = activeConnection()
-    return try await withCheckedThrowingContinuation { continuation in
-      guard
-        let proxy = connection.remoteObjectProxyWithErrorHandler({ error in
-          continuation.resume(
-            throwing: HelperClientError.connectionFailed(error.localizedDescription))
-        }) as? AwakeHelperProtocol
-      else {
-        continuation.resume(throwing: HelperClientError.connectionFailed("XPCインターフェースが無効です。"))
-        return
-      }
-      proxy.status { enabled, ownedByAwake, sessionIdentifier, errorMessage in
-        if let errorMessage {
-          continuation.resume(throwing: HelperClientError.operationFailed(errorMessage))
-        } else {
-          continuation.resume(returning: (enabled, ownedByAwake, sessionIdentifier))
-        }
-      }
+    try await call { proxy, gate in
+      proxy.status(reply: Self.statusReply(gate))
     }
   }
 
   func enable(sessionIdentifier: String) async throws {
-    let connection = activeConnection()
-    try await withCheckedThrowingContinuation { continuation in
-      guard let proxy = operationProxy(connection: connection, continuation: continuation) else {
-        return
-      }
-      proxy.enable(sessionIdentifier: sessionIdentifier) { success, errorMessage in
-        Self.resume(continuation, success: success, errorMessage: errorMessage)
-      }
+    try await call { proxy, gate in
+      proxy.enable(sessionIdentifier: sessionIdentifier, reply: Self.operationReply(gate))
     }
   }
 
   func heartbeat(sessionIdentifier: String) async throws {
-    let connection = activeConnection()
-    try await withCheckedThrowingContinuation { continuation in
-      guard let proxy = operationProxy(connection: connection, continuation: continuation) else {
-        return
-      }
-      proxy.heartbeat(sessionIdentifier: sessionIdentifier) { success, errorMessage in
-        Self.resume(continuation, success: success, errorMessage: errorMessage)
-      }
+    try await call { proxy, gate in
+      proxy.heartbeat(sessionIdentifier: sessionIdentifier, reply: Self.operationReply(gate))
     }
   }
 
   func disable(sessionIdentifier: String) async throws {
-    let connection = activeConnection()
-    try await withCheckedThrowingContinuation { continuation in
-      guard let proxy = operationProxy(connection: connection, continuation: continuation) else {
-        return
-      }
-      proxy.disable(sessionIdentifier: sessionIdentifier) { success, errorMessage in
-        Self.resume(continuation, success: success, errorMessage: errorMessage)
-      }
+    try await call { proxy, gate in
+      proxy.disable(sessionIdentifier: sessionIdentifier, reply: Self.operationReply(gate))
     }
   }
 
   func restoreOrphanedState() async throws {
-    let connection = activeConnection()
-    try await withCheckedThrowingContinuation { continuation in
-      guard let proxy = operationProxy(connection: connection, continuation: continuation) else {
-        return
-      }
-      proxy.restoreOrphanedState { success, errorMessage in
-        Self.resume(continuation, success: success, errorMessage: errorMessage)
-      }
+    try await call { proxy, gate in
+      proxy.restoreOrphanedState(reply: Self.operationReply(gate))
     }
   }
 
@@ -190,20 +170,69 @@ final class HelperClient {
     }
   }
 
-  private func operationProxy(
-    connection: NSXPCConnection,
-    continuation: CheckedContinuation<Void, Error>
-  ) -> AwakeHelperProtocol? {
-    guard
-      let proxy = connection.remoteObjectProxyWithErrorHandler({ error in
-        continuation.resume(
-          throwing: HelperClientError.connectionFailed(error.localizedDescription))
-      }) as? AwakeHelperProtocol
-    else {
-      continuation.resume(throwing: HelperClientError.connectionFailed("XPCインターフェースが無効です。"))
-      return nil
+  /// Sends one XPC request and waits for its reply, an XPC error, or the timeout, whichever comes first.
+  /// Without the timeout, a request to a registered daemon that launchd cannot start waits forever.
+  private func call<Value: Sendable>(
+    _ send: (AwakeHelperProtocol, ReplyGate<Value>) -> Void
+  ) async throws -> Value {
+    let connection = activeConnection()
+    let connectionIdentifier = ObjectIdentifier(connection)
+    var timeoutTask: Task<Void, Never>?
+    defer { timeoutTask?.cancel() }
+
+    return try await withCheckedThrowingContinuation { continuation in
+      let gate = ReplyGate(continuation)
+      timeoutTask = Task { [weak self] in
+        try? await Task.sleep(for: .seconds(Self.replyTimeout))
+        guard !Task.isCancelled,
+          gate.resume(with: .failure(HelperClientError.helperNotResponding))
+        else { return }
+        self?.dropConnection(connectionIdentifier)
+      }
+
+      guard
+        let proxy = connection.remoteObjectProxyWithErrorHandler(Self.errorHandler(gate))
+          as? AwakeHelperProtocol
+      else {
+        gate.resume(with: .failure(HelperClientError.connectionFailed("XPCインターフェースが無効です。")))
+        return
+      }
+      send(proxy, gate)
     }
-    return proxy
+  }
+
+  private func dropConnection(_ connectionIdentifier: ObjectIdentifier) {
+    guard let connection, ObjectIdentifier(connection) == connectionIdentifier else { return }
+    invalidate()
+  }
+
+  // Reply blocks run on XPC queues, so they are built outside the main actor.
+  private nonisolated static func errorHandler<Value: Sendable>(_ gate: ReplyGate<Value>) -> @Sendable (Error) -> Void {
+    { error in
+      gate.resume(with: .failure(HelperClientError.connectionFailed(error.localizedDescription)))
+    }
+  }
+
+  private nonisolated static func statusReply(
+    _ gate: ReplyGate<(enabled: Bool, ownedByAwake: Bool, sessionIdentifier: String?)>
+  ) -> @Sendable (Bool, Bool, String?, String?) -> Void {
+    { enabled, ownedByAwake, sessionIdentifier, errorMessage in
+      if let errorMessage {
+        gate.resume(with: .failure(HelperClientError.operationFailed(errorMessage)))
+      } else {
+        gate.resume(with: .success((enabled, ownedByAwake, sessionIdentifier)))
+      }
+    }
+  }
+
+  private nonisolated static func operationReply(_ gate: ReplyGate<Void>) -> @Sendable (Bool, String?) -> Void {
+    { success, errorMessage in
+      gate.resume(
+        with: success
+          ? .success(())
+          : .failure(HelperClientError.operationFailed(errorMessage ?? "ヘルパーの処理に失敗しました。"))
+      )
+    }
   }
 
   private func makeConnection() -> NSXPCConnection {
@@ -232,18 +261,24 @@ final class HelperClient {
     connection.activate()
     return connection
   }
+}
 
-  private static func resume(
-    _ continuation: CheckedContinuation<Void, Error>,
-    success: Bool,
-    errorMessage: String?
-  ) {
-    if success {
-      continuation.resume()
-    } else {
-      continuation.resume(
-        throwing: HelperClientError.operationFailed(errorMessage ?? "ヘルパーの処理に失敗しました。")
-      )
-    }
+/// Resumes a continuation at most once; the XPC reply, the XPC error handler, and the timeout race each other.
+private final class ReplyGate<Value: Sendable>: @unchecked Sendable {
+  private let lock = NSLock()
+  private var continuation: CheckedContinuation<Value, Error>?
+
+  init(_ continuation: CheckedContinuation<Value, Error>) {
+    self.continuation = continuation
+  }
+
+  @discardableResult
+  func resume(with result: Result<Value, Error>) -> Bool {
+    lock.lock()
+    let pending = continuation
+    continuation = nil
+    lock.unlock()
+    pending?.resume(with: result)
+    return pending != nil
   }
 }
