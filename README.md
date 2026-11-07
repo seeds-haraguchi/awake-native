@@ -46,4 +46,8 @@ DMG を開くだけではインストールされません。Awake は「アプ�
 
 ビルド、テスト、署名、公証の手順は[開発・リリース手順](docs/DEVELOPMENT.md)にまとめています。特権操作を含む実機テストは[テスト計画](docs/TESTING.md)を参照してください。
 
-参考: [tanabee/awake](https://github.com/tanabee/awake)
+## ライセンス
+
+MIT License で公開しています。原作者 tanabee の著作権表示を含む全文は [LICENSE](LICENSE) を参照してください。
+
+このプロジェクトは [tanabee/awake](https://github.com/tanabee/awake) を基にした [Go 版 awake](https://github.com/seeds-anakai/awake) の Fork として始まり、macOS ネイティブアプリとして開発しました。
